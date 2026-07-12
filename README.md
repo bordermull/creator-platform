@@ -1,4 +1,4 @@
-# creatur-platform
+# creator-platform
 
 Static MVP for the CREATUR interface based on the Figma concept.
 
