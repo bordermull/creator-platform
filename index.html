@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CREATUR</title>
+    <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -76,27 +77,7 @@
               <h2>Фильтры</h2>
               <button class="filter-close" type="button" data-close-filters aria-label="Закрыть фильтры">×</button>
             </div>
-            <div class="filter-group" data-filter-group="section">
-              <p class="filter-title">Раздел</p>
-              <label><input type="checkbox" value="ai" checked /> ИИ-креаторы</label>
-              <label><input type="checkbox" value="3D" checked /> 3D-креаторы</label>
-              <label><input type="checkbox" value="design" checked /> Дизайнеры</label>
-              <label><input type="checkbox" value="code" /> Программисты</label>
-            </div>
-            <div class="filter-group" data-filter-group="tools">
-              <p class="filter-title">Инструменты</p>
-              <label><input type="checkbox" value="Blender" /> Blender</label>
-              <label><input type="checkbox" value="ProCreate" /> ProCreate</label>
-              <label><input type="checkbox" value="Unreal" /> Unreal Engine</label>
-              <label><input type="checkbox" value="Unity" /> Unity</label>
-            </div>
-            <div class="filter-group" data-filter-group="themes">
-              <p class="filter-title">Тематика</p>
-              <label><input type="checkbox" value="fantasy" /> Fantasy</label>
-              <label><input type="checkbox" value="sci-fi" /> Sci-fi</label>
-              <label><input type="checkbox" value="game" /> Game art</label>
-              <label><input type="checkbox" value="concept" /> Концепт</label>
-            </div>
+            <div class="filter-groups" data-filter-groups></div>
             <div class="filters-actions">
               <button class="ghost-button" type="button" data-clear-filters>Сбросить</button>
               <button class="primary-button full" type="button" data-apply-filters>Применить</button>

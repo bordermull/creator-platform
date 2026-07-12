@@ -459,6 +459,10 @@ img {
   border-color: var(--accent);
 }
 
+.filter-groups {
+  display: grid;
+}
+
 .filter-group {
   padding: 20px 0 18px;
   border-top: 1px solid #373737;

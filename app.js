@@ -9,6 +9,72 @@ const assets = {
   projectForeign: "./assets/extracted/project-public-foreign/"
 };
 
+const filterGroups = [
+  {
+    id: "section",
+    title: "Раздел",
+    defaultSelected: ["ai", "3D", "design"],
+    options: [
+      { value: "ai", label: "ИИ-креаторы" },
+      { value: "3D", label: "3D-креаторы" },
+      { value: "design", label: "Дизайнеры" },
+      { value: "code", label: "Программисты" }
+    ]
+  },
+  {
+    id: "software",
+    title: "Инструменты",
+    options: [
+      { value: "Blender", label: "Blender" },
+      { value: "ProCreate", label: "ProCreate" },
+      { value: "Unreal", label: "Unreal Engine" },
+      { value: "Unity", label: "Unity" },
+      { value: "Photoshop", label: "Photoshop" },
+      { value: "Figma", label: "Figma" },
+      { value: "Illustrator", label: "Illustrator" },
+      { value: "After Effects", label: "After Effects" },
+      { value: "Maya", label: "Maya" },
+      { value: "ZBrush", label: "ZBrush" },
+      { value: "Cinema 4D", label: "Cinema 4D" },
+      { value: "Houdini", label: "Houdini" },
+      { value: "Substance Painter", label: "Substance Painter" }
+    ]
+  },
+  {
+    id: "content",
+    title: "Тип проекта",
+    options: [
+      { value: "3d-models", label: "3D-модели" },
+      { value: "illustration", label: "Иллюстрации" },
+      { value: "concept", label: "Концепт-арт" },
+      { value: "animation", label: "Анимация" },
+      { value: "character", label: "Персонажи" },
+      { value: "environment", label: "Окружение" },
+      { value: "interface", label: "Интерфейсы" },
+      { value: "prototype", label: "Код и прототипы" }
+    ]
+  },
+  {
+    id: "themes",
+    title: "Тематика",
+    options: [
+      { value: "fantasy", label: "Fantasy" },
+      { value: "sci-fi", label: "Sci-fi" },
+      { value: "game", label: "Game art" },
+      { value: "cyberpunk", label: "Cyberpunk" },
+      { value: "hard-surface", label: "Hard surface" },
+      { value: "magic", label: "Magic" },
+      { value: "digital-art", label: "Digital art" },
+      { value: "motion", label: "Motion" },
+      { value: "gamedev", label: "GameDev" }
+    ]
+  }
+];
+
+function defaultFilterState() {
+  return Object.fromEntries(filterGroups.map((group) => [group.id, group.defaultSelected || []]));
+}
+
 const projects = [
   {
     id: "portal-cube",
@@ -17,7 +83,7 @@ const projects = [
     avatar: `${assets.authedHome}image-01.png`,
     image: `${assets.home}image-01.png`,
     category: ["3D", "Blender", "sci-fi"],
-    filters: ["ai", "3D", "Blender", "sci-fi"],
+    filters: ["ai", "3D", "Blender", "sci-fi", "3d-models", "game", "magic"],
     likes: 384,
     views: "2.1k",
     description: "Серия кадров для портального артефакта: свет, напряжение формы и ощущение большой игровой сцены."
@@ -29,7 +95,7 @@ const projects = [
     avatar: `${assets.home}image-04.png`,
     image: `${assets.home}image-02.png`,
     category: ["3D", "Unreal", "game"],
-    filters: ["3D", "design", "Unreal", "game", "concept"],
+    filters: ["3D", "design", "Unreal", "game", "concept", "3d-models", "hard-surface"],
     likes: 268,
     views: "1.7k",
     description: "Детализированный hard-surface объект с акцентом на металл, соединения и выразительный силуэт."
@@ -41,7 +107,7 @@ const projects = [
     avatar: `${assets.home}image-07.png`,
     image: `${assets.home}image-03.png`,
     category: ["digital", "fantasy"],
-    filters: ["design", "ProCreate", "fantasy", "game"],
+    filters: ["design", "ProCreate", "fantasy", "game", "illustration", "digital-art", "magic", "character"],
     likes: 421,
     views: "3.9k",
     description: "Иллюстрация с контрастом холодного пространства и теплого магического света."
@@ -53,7 +119,7 @@ const projects = [
     avatar: `${assets.home}image-08.png`,
     image: `${assets.home}image-05.png`,
     category: ["3D", "Unity", "sci-fi"],
-    filters: ["3D", "code", "Unity", "sci-fi"],
+    filters: ["3D", "code", "Unity", "sci-fi", "3d-models", "hard-surface", "gamedev"],
     likes: 197,
     views: "980",
     description: "Игровой объект с агрессивной пластикой, темным корпусом и световыми акцентами."
@@ -65,7 +131,7 @@ const projects = [
     avatar: `${assets.authedHome}image-01.png`,
     image: `${assets.home}image-06.png`,
     category: ["digital", "sci-fi"],
-    filters: ["ai", "design", "sci-fi"],
+    filters: ["ai", "design", "sci-fi", "environment", "interface", "digital-art"],
     likes: 512,
     views: "4.4k",
     description: "Окружение для сюжетной сцены, построенное вокруг света интерфейсов и глубины кадра."
@@ -77,7 +143,7 @@ const projects = [
     avatar: `${assets.home}image-04.png`,
     image: `${assets.home}image-07.png`,
     category: ["3D", "Blender", "fantasy"],
-    filters: ["3D", "Blender", "fantasy", "concept"],
+    filters: ["3D", "Blender", "fantasy", "concept", "3d-models", "hard-surface", "game"],
     likes: 145,
     views: "760",
     description: "Пропс для приключенческой игры: потертый металл, декоративные детали и читаемая форма."
@@ -89,7 +155,7 @@ const projects = [
     avatar: `${assets.authedHome}image-01.png`,
     image: `${assets.home}image-08.png`,
     category: ["digital", "game"],
-    filters: ["design", "ProCreate", "game", "concept"],
+    filters: ["design", "ProCreate", "game", "concept", "illustration", "digital-art", "character"],
     likes: 631,
     views: "5.2k",
     description: "Крупный эмоциональный портрет героя с напряженным взглядом и кинематографичным светом."
@@ -101,7 +167,7 @@ const projects = [
     avatar: `${assets.projectForeign}image-05.png`,
     image: `${assets.projectForeign}image-01.png`,
     category: ["motion", "sci-fi"],
-    filters: ["ai", "design", "sci-fi"],
+    filters: ["ai", "design", "sci-fi", "motion", "digital-art"],
     likes: 229,
     views: "1.2k",
     description: "Экспериментальная работа с прозрачными материалами, свечением и плавным движением."
@@ -112,11 +178,7 @@ const state = {
   isAuthed: localStorage.getItem("creatur-auth") === "true",
   authMode: "login",
   search: "",
-  filters: {
-    section: ["ai", "3D", "design"],
-    tools: [],
-    themes: []
-  }
+  filters: defaultFilterState()
 };
 
 const app = document.querySelector("#app");
@@ -246,6 +308,22 @@ function renderCards(target, items) {
     : `<div class="empty-results">По выбранным фильтрам пока нет проектов.</div>`;
 }
 
+function renderFilterControls(target) {
+  target.innerHTML = filterGroups
+    .map((group) => {
+      const options = group.options
+        .map((option) => `<label><input type="checkbox" value="${option.value}" /> ${option.label}</label>`)
+        .join("");
+      return `
+        <div class="filter-group" data-filter-group="${group.id}">
+          <p class="filter-title">${group.title}</p>
+          ${options}
+        </div>
+      `;
+    })
+    .join("");
+}
+
 function syncFilterInputs(filters) {
   filters.querySelectorAll("[data-filter-group]").forEach((group) => {
     const groupName = group.dataset.filterGroup;
@@ -261,11 +339,7 @@ function readFilterInputs(filters) {
   filters.querySelectorAll("[data-filter-group]").forEach((group) => {
     next[group.dataset.filterGroup] = Array.from(group.querySelectorAll("input[type='checkbox']:checked")).map((input) => input.value);
   });
-  state.filters = {
-    section: next.section || [],
-    tools: next.tools || [],
-    themes: next.themes || []
-  };
+  state.filters = Object.fromEntries(filterGroups.map((group) => [group.id, next[group.id] || []]));
 }
 
 function renderHome() {
@@ -274,11 +348,13 @@ function renderHome() {
   const grid = app.querySelector("[data-project-grid]");
   const search = app.querySelector("[data-search]");
   const filters = app.querySelector("[data-filters]");
+  const filterGroupsTarget = app.querySelector("[data-filter-groups]");
   const filtersOverlay = app.querySelector("[data-filters-overlay]");
   const uploadShortcut = app.querySelector("[data-upload-shortcut]");
 
   home.classList.toggle("is-authed", state.isAuthed);
   uploadShortcut.hidden = !state.isAuthed;
+  renderFilterControls(filterGroupsTarget);
   renderCards(grid, filteredProjects());
   syncFilterInputs(filters);
 
