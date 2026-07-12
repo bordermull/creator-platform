@@ -17,6 +17,7 @@ const projects = [
     avatar: `${assets.authedHome}image-01.png`,
     image: `${assets.home}image-01.png`,
     category: ["3D", "Blender", "sci-fi"],
+    filters: ["ai", "3D", "Blender", "sci-fi"],
     likes: 384,
     views: "2.1k",
     description: "Серия кадров для портального артефакта: свет, напряжение формы и ощущение большой игровой сцены."
@@ -28,6 +29,7 @@ const projects = [
     avatar: `${assets.home}image-04.png`,
     image: `${assets.home}image-02.png`,
     category: ["3D", "Unreal", "game"],
+    filters: ["3D", "design", "Unreal", "game", "concept"],
     likes: 268,
     views: "1.7k",
     description: "Детализированный hard-surface объект с акцентом на металл, соединения и выразительный силуэт."
@@ -39,6 +41,7 @@ const projects = [
     avatar: `${assets.home}image-07.png`,
     image: `${assets.home}image-03.png`,
     category: ["digital", "fantasy"],
+    filters: ["design", "ProCreate", "fantasy", "game"],
     likes: 421,
     views: "3.9k",
     description: "Иллюстрация с контрастом холодного пространства и теплого магического света."
@@ -50,6 +53,7 @@ const projects = [
     avatar: `${assets.home}image-08.png`,
     image: `${assets.home}image-05.png`,
     category: ["3D", "Unity", "sci-fi"],
+    filters: ["3D", "code", "Unity", "sci-fi"],
     likes: 197,
     views: "980",
     description: "Игровой объект с агрессивной пластикой, темным корпусом и световыми акцентами."
@@ -61,6 +65,7 @@ const projects = [
     avatar: `${assets.authedHome}image-01.png`,
     image: `${assets.home}image-06.png`,
     category: ["digital", "sci-fi"],
+    filters: ["ai", "design", "sci-fi"],
     likes: 512,
     views: "4.4k",
     description: "Окружение для сюжетной сцены, построенное вокруг света интерфейсов и глубины кадра."
@@ -72,6 +77,7 @@ const projects = [
     avatar: `${assets.home}image-04.png`,
     image: `${assets.home}image-07.png`,
     category: ["3D", "Blender", "fantasy"],
+    filters: ["3D", "Blender", "fantasy", "concept"],
     likes: 145,
     views: "760",
     description: "Пропс для приключенческой игры: потертый металл, декоративные детали и читаемая форма."
@@ -83,6 +89,7 @@ const projects = [
     avatar: `${assets.authedHome}image-01.png`,
     image: `${assets.home}image-08.png`,
     category: ["digital", "game"],
+    filters: ["design", "ProCreate", "game", "concept"],
     likes: 631,
     views: "5.2k",
     description: "Крупный эмоциональный портрет героя с напряженным взглядом и кинематографичным светом."
@@ -94,6 +101,7 @@ const projects = [
     avatar: `${assets.projectForeign}image-05.png`,
     image: `${assets.projectForeign}image-01.png`,
     category: ["motion", "sci-fi"],
+    filters: ["ai", "design", "sci-fi"],
     likes: 229,
     views: "1.2k",
     description: "Экспериментальная работа с прозрачными материалами, свечением и плавным движением."
@@ -103,7 +111,12 @@ const projects = [
 const state = {
   isAuthed: localStorage.getItem("creatur-auth") === "true",
   authMode: "login",
-  search: ""
+  search: "",
+  filters: {
+    section: ["ai", "3D", "design"],
+    tools: [],
+    themes: []
+  }
 };
 
 const app = document.querySelector("#app");
@@ -214,14 +227,45 @@ function projectCard(project) {
 
 function filteredProjects() {
   const q = state.search.trim().toLowerCase();
+  const activeFilters = Object.values(state.filters);
   return projects.filter((project) => {
-    if (!q) return true;
-    return `${project.title} ${project.author} ${project.category.join(" ")}`.toLowerCase().includes(q);
+    const haystack = `${project.title} ${project.author} ${project.category.join(" ")} ${project.filters.join(" ")}`.toLowerCase();
+    const matchesSearch = !q || haystack.includes(q);
+    const projectFilters = project.filters.map((item) => item.toLowerCase());
+    const matchesFilters = activeFilters.every((group) => {
+      if (!group.length) return true;
+      return group.some((value) => projectFilters.includes(value.toLowerCase()));
+    });
+    return matchesSearch && matchesFilters;
   });
 }
 
 function renderCards(target, items) {
-  target.innerHTML = items.map(projectCard).join("");
+  target.innerHTML = items.length
+    ? items.map(projectCard).join("")
+    : `<div class="empty-results">По выбранным фильтрам пока нет проектов.</div>`;
+}
+
+function syncFilterInputs(filters) {
+  filters.querySelectorAll("[data-filter-group]").forEach((group) => {
+    const groupName = group.dataset.filterGroup;
+    const active = state.filters[groupName] || [];
+    group.querySelectorAll("input[type='checkbox']").forEach((input) => {
+      input.checked = active.includes(input.value);
+    });
+  });
+}
+
+function readFilterInputs(filters) {
+  const next = {};
+  filters.querySelectorAll("[data-filter-group]").forEach((group) => {
+    next[group.dataset.filterGroup] = Array.from(group.querySelectorAll("input[type='checkbox']:checked")).map((input) => input.value);
+  });
+  state.filters = {
+    section: next.section || [],
+    tools: next.tools || [],
+    themes: next.themes || []
+  };
 }
 
 function renderHome() {
@@ -236,6 +280,7 @@ function renderHome() {
   home.classList.toggle("is-authed", state.isAuthed);
   uploadShortcut.hidden = !state.isAuthed;
   renderCards(grid, filteredProjects());
+  syncFilterInputs(filters);
 
   if (search) {
     search.value = state.search;
@@ -246,6 +291,7 @@ function renderHome() {
   }
 
   app.querySelector("[data-filter-toggle]").addEventListener("click", () => {
+    syncFilterInputs(filters);
     filtersOverlay.hidden = false;
     filters.classList.add("open");
   });
@@ -262,9 +308,13 @@ function renderHome() {
     filters.querySelectorAll("input[type='checkbox']").forEach((input) => {
       input.checked = false;
     });
+    readFilterInputs(filters);
+    renderCards(grid, filteredProjects());
   });
 
   app.querySelector("[data-apply-filters]").addEventListener("click", () => {
+    readFilterInputs(filters);
+    renderCards(grid, filteredProjects());
     closeFilters();
   });
 
