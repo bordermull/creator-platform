@@ -27,91 +27,112 @@
       </header>
 
       <main id="app"></main>
+
+      <footer class="footer">
+        <a class="logo" href="#home">CREA<span>TUR</span></a>
+        <nav aria-label="Контакты">
+          <a href="#home">Наши контакты</a>
+          <a href="#home">Telegram</a>
+          <a href="#home">Вконтакте</a>
+        </nav>
+        <p>© CREATUR TEAM. Все права защищены.</p>
+      </footer>
     </div>
 
     <template id="home-template">
-      <section class="hero">
-        <div class="hero-grid"></div>
-        <div class="hero-line hero-line-left"></div>
-        <div class="hero-line hero-line-right"></div>
-        <div class="hero-copy">
-          <h1>Стань частью великой эволюции</h1>
-          <p>Цифровая площадка для публикации работ, историй проектов и поиска авторов.</p>
+      <section class="home-screen" data-home-screen>
+        <div class="home-intro">
+          <div class="hero-copy">
+            <p class="eyebrow">Платформа авторов</p>
+            <h1>Стань частью великой эволюции</h1>
+            <p class="hero-text">Публикуй 3D, digital art и игровые концепты, собирай реакции и находи авторов для новых проектов.</p>
+          </div>
+          <div class="hero-preview" aria-hidden="true">
+            <div class="preview-card preview-card-a"></div>
+            <div class="preview-card preview-card-b"></div>
+            <div class="preview-card preview-card-c"></div>
+          </div>
         </div>
-      </section>
 
-      <section class="catalog-layout">
-        <aside class="filters-panel" data-filters>
-          <div class="filters-head">
-            <h2>Фильтры</h2>
-            <button class="ghost-button" type="button" data-clear-filters>Сбросить</button>
-          </div>
-          <div class="filter-group">
-            <p class="filter-title">Раздел</p>
-            <label><input type="checkbox" value="3D" checked /> 3D-модели</label>
-            <label><input type="checkbox" value="digital" checked /> Digital art</label>
-            <label><input type="checkbox" value="motion" /> Motion</label>
-          </div>
-          <div class="filter-group">
-            <p class="filter-title">Движки</p>
-            <label><input type="checkbox" value="Blender" /> Blender</label>
-            <label><input type="checkbox" value="Unreal" /> Unreal Engine</label>
-            <label><input type="checkbox" value="Unity" /> Unity</label>
-          </div>
-          <div class="filter-group">
-            <p class="filter-title">Тематика</p>
-            <label><input type="checkbox" value="fantasy" /> Fantasy</label>
-            <label><input type="checkbox" value="sci-fi" /> Sci-fi</label>
-            <label><input type="checkbox" value="game" /> Game art</label>
-          </div>
-          <button class="primary-button full" type="button" data-apply-filters>Применить</button>
-        </aside>
+        <div class="catalog-toolbar" data-authed-toolbar>
+          <button class="filter-toggle" type="button" data-filter-toggle>Фильтр</button>
+          <label class="search">
+            <span aria-hidden="true">⌕</span>
+            <input type="search" data-search placeholder="Поиск работ, авторов и тегов" />
+          </label>
+          <button class="primary-button" type="button" data-upload-shortcut>Загрузить проект</button>
+        </div>
 
-        <section class="catalog">
-          <div class="catalog-toolbar">
-            <button class="filter-toggle" type="button" data-filter-toggle>Фильтр</button>
-            <label class="search">
-              <span>Поиск</span>
-              <input type="search" data-search placeholder="По названию или автору" />
-            </label>
-          </div>
-          <div class="cards-grid" data-project-grid></div>
-        </section>
+        <div class="catalog-layout">
+          <aside class="filters-panel" data-filters>
+            <div class="filters-head">
+              <h2>Фильтры</h2>
+              <button class="ghost-button" type="button" data-clear-filters>Сбросить</button>
+            </div>
+            <div class="filter-group">
+              <p class="filter-title">Раздел</p>
+              <label><input type="checkbox" value="3D" checked /> 3D-модели</label>
+              <label><input type="checkbox" value="digital" checked /> Digital art</label>
+              <label><input type="checkbox" value="motion" checked /> Motion</label>
+            </div>
+            <div class="filter-group">
+              <p class="filter-title">Инструменты</p>
+              <label><input type="checkbox" value="Blender" /> Blender</label>
+              <label><input type="checkbox" value="Unreal" /> Unreal Engine</label>
+              <label><input type="checkbox" value="Unity" /> Unity</label>
+            </div>
+            <div class="filter-group">
+              <p class="filter-title">Тематика</p>
+              <label><input type="checkbox" value="fantasy" /> Fantasy</label>
+              <label><input type="checkbox" value="sci-fi" /> Sci-fi</label>
+              <label><input type="checkbox" value="game" /> Game art</label>
+            </div>
+            <button class="primary-button full" type="button" data-apply-filters>Применить</button>
+          </aside>
+
+          <section class="catalog" aria-label="Галерея проектов">
+            <div class="cards-grid" data-project-grid></div>
+          </section>
+        </div>
       </section>
     </template>
 
-    <template id="auth-template">
-      <section class="auth-screen">
-        <form class="auth-card" data-auth-form novalidate>
-          <h1 data-auth-title>Вход</h1>
-          <p data-auth-subtitle>Нет аккаунта? <a href="#register">Создать профиль</a></p>
-          <div class="field">
-            <label for="email">Адрес электронной почты</label>
-            <input id="email" name="email" type="email" autocomplete="email" required />
+    <template id="auth-modal-template">
+      <div class="modal-backdrop" data-modal-backdrop>
+        <section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+          <button class="modal-close" type="button" data-close-modal aria-label="Закрыть">×</button>
+          <form class="auth-card" data-auth-form novalidate>
+            <h1 id="auth-title" data-auth-title>Вход</h1>
+            <p data-auth-subtitle>Нет аккаунта? <button type="button" data-switch-auth="register">Создать профиль</button></p>
+            <div class="field">
+              <label for="email">Адрес электронной почты</label>
+              <input id="email" name="email" type="email" autocomplete="email" required />
+            </div>
+            <div class="field">
+              <label for="password">Пароль</label>
+              <input id="password" name="password" type="password" autocomplete="current-password" required />
+            </div>
+            <p class="form-error" data-form-error></p>
+            <button class="primary-button full" type="submit" data-auth-submit>Продолжить</button>
+          </form>
+          <div class="auth-brand">
+            <div class="logo logo-big">CREA<span>TUR</span></div>
+            <h2>Искусство начинается</h2>
           </div>
-          <div class="field">
-            <label for="password">Пароль</label>
-            <input id="password" name="password" type="password" autocomplete="current-password" required />
-          </div>
-          <p class="form-error" data-form-error></p>
-          <button class="primary-button full" type="submit" data-auth-submit>Продолжить</button>
-          <div class="auth-mark" aria-hidden="true"></div>
-        </form>
-        <div class="auth-brand">
-          <div class="logo logo-big">CREA<span>TUR</span></div>
-          <h2>Искусство начинается здесь!</h2>
-        </div>
-      </section>
+        </section>
+      </div>
     </template>
 
     <template id="profile-template">
       <section class="profile-hero">
-        <div class="profile-cover art-cover"></div>
+        <div class="profile-cover">
+          <img src="./assets/extracted/user-profile/image-01.png" alt="" />
+        </div>
         <div class="profile-info">
-          <div class="avatar">В</div>
+          <img class="avatar image-avatar" src="./assets/extracted/home-after-registration/image-01.png" alt="Аватар Виктора" />
           <div>
             <h1>Виктор Жестянщиков</h1>
-            <button class="primary-button compact" type="button">+ Подписаться</button>
+            <p>3D-художник, концепт-дизайнер, автор игровых объектов.</p>
           </div>
           <dl>
             <div><dt>Работ</dt><dd>28</dd></div>
@@ -129,8 +150,11 @@
     <template id="upload-template">
       <section class="upload-screen">
         <div class="upload-drop" data-upload-drop>
-          <div class="upload-plus">+</div>
-          <p>Загрузите изображение</p>
+          <img src="./assets/extracted/project-upload-empty/image-01.png" alt="" />
+          <div class="upload-drop-copy">
+            <div class="upload-plus">+</div>
+            <p>Загрузите изображение</p>
+          </div>
         </div>
         <form class="upload-form">
           <div class="field">
@@ -155,16 +179,6 @@
     <template id="project-template">
       <section class="project-page" data-project-page></section>
     </template>
-
-    <footer class="footer">
-      <a class="logo" href="#home">CREA<span>TUR</span></a>
-      <nav aria-label="Контакты">
-        <a href="#home">Наши контакты</a>
-        <a href="#home">Telegram</a>
-        <a href="#home">Вконтакте</a>
-      </nav>
-      <p>© CREATUR TEAM. Все права защищены.</p>
-    </footer>
 
     <script src="./app.js"></script>
   </body>
