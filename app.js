@@ -159,12 +159,34 @@ function cloneTemplate(id) {
 function renderHeader() {
   authActions.innerHTML = state.isAuthed
     ? `
-      <a class="ghost-button" href="#upload">Загрузить</a>
-      <a class="avatar-button" href="#account" aria-label="Перейти в личный кабинет">
-        <img src="${assets.account}image-01.png" alt="" />
-      </a>
+      <div class="account-menu" data-account-menu>
+        <button class="avatar-button" type="button" data-account-toggle aria-expanded="false" aria-label="Открыть меню аккаунта">
+          <img src="${assets.account}image-01.png" alt="" />
+        </button>
+        <div class="account-dropdown" data-account-dropdown hidden>
+          <a href="#account">Личный кабинет</a>
+          <a href="#upload">Загрузить проект</a>
+          <button type="button" data-logout>Выйти</button>
+        </div>
+      </div>
     `
-    : `<a class="ghost-button" href="#login">Вход</a>`;
+    : `<a class="login-button" href="#login">Вход</a>`;
+
+  const accountToggle = authActions.querySelector("[data-account-toggle]");
+  const accountDropdown = authActions.querySelector("[data-account-dropdown]");
+  accountToggle?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const isOpen = accountDropdown.hidden;
+    accountDropdown.hidden = !isOpen;
+    accountToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  authActions.querySelector("[data-logout]")?.addEventListener("click", () => {
+    state.isAuthed = false;
+    localStorage.removeItem("creatur-auth");
+    window.location.hash = "home";
+    route();
+  });
 }
 
 function projectCard(project) {
@@ -288,6 +310,14 @@ function closeAuth() {
   if (window.location.hash === "#login" || window.location.hash === "#register") {
     window.location.hash = "home";
   }
+}
+
+function closeAccountMenu() {
+  const dropdown = document.querySelector("[data-account-dropdown]");
+  const toggle = document.querySelector("[data-account-toggle]");
+  if (!dropdown || dropdown.hidden) return;
+  dropdown.hidden = true;
+  toggle?.setAttribute("aria-expanded", "false");
 }
 
 function submitAuth(event) {
@@ -432,8 +462,17 @@ document.querySelector("[data-menu-button]").addEventListener("click", () => {
   header.classList.toggle("menu-open");
 });
 
+document.addEventListener("click", (event) => {
+  if (!event.target.closest("[data-account-menu]")) {
+    closeAccountMenu();
+  }
+});
+
 window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeAuth();
+  if (event.key === "Escape") {
+    closeAuth();
+    closeAccountMenu();
+  }
 });
 
 window.addEventListener("hashchange", route);
