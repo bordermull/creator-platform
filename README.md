@@ -1,4 +1,4 @@
-# gleb-request
+# creatur-platform
 
 Static MVP for the CREATUR interface based on the Figma concept.
 
