@@ -13,10 +13,10 @@
           <img src="./assets/logo.svg" alt="CREATUR" />
         </a>
         <nav class="nav" aria-label="Основная навигация">
-          <a href="#home">Инфо-центр</a>
-          <a href="#home">3D-галерея</a>
+          <a href="#home">ИИ-креаторы</a>
+          <a href="#home">3D-креаторы</a>
           <a href="#profile">Дизайнеры</a>
-          <a href="#upload">Публикации</a>
+          <a href="#home">Программисты</a>
         </nav>
         <div class="header-actions" data-auth-actions></div>
         <button class="menu-button" type="button" data-menu-button aria-label="Открыть меню">
@@ -56,30 +56,38 @@
           </div>
         </div>
 
-        <div class="catalog-toolbar" data-authed-toolbar>
-          <button class="filter-toggle" type="button" data-filter-toggle>Фильтр</button>
+        <div class="catalog-toolbar">
+          <button class="filter-toggle" type="button" data-filter-toggle>Фильтры</button>
           <label class="search">
             <span aria-hidden="true">⌕</span>
-            <input type="search" data-search placeholder="Поиск работ, авторов и тегов" />
+            <input type="search" data-search placeholder="Запросы сюда! :3" />
           </label>
-          <button class="primary-button" type="button" data-upload-shortcut>Загрузить проект</button>
+          <button class="primary-button upload-shortcut" type="button" data-upload-shortcut>Загрузить проект</button>
         </div>
 
         <div class="catalog-layout">
-          <aside class="filters-panel" data-filters>
+          <section class="catalog" aria-label="Галерея проектов">
+            <div class="cards-grid" data-project-grid></div>
+          </section>
+        </div>
+
+        <div class="filters-overlay" data-filters-overlay hidden>
+          <aside class="filters-panel" data-filters role="dialog" aria-modal="true" aria-label="Фильтры каталога">
             <div class="filters-head">
               <h2>Фильтры</h2>
-              <button class="ghost-button" type="button" data-clear-filters>Сбросить</button>
+              <button class="filter-close" type="button" data-close-filters aria-label="Закрыть фильтры">×</button>
             </div>
             <div class="filter-group">
               <p class="filter-title">Раздел</p>
-              <label><input type="checkbox" value="3D" checked /> 3D-модели</label>
-              <label><input type="checkbox" value="digital" checked /> Digital art</label>
-              <label><input type="checkbox" value="motion" checked /> Motion</label>
+              <label><input type="checkbox" value="ai" checked /> ИИ-креаторы</label>
+              <label><input type="checkbox" value="3D" checked /> 3D-креаторы</label>
+              <label><input type="checkbox" value="design" checked /> Дизайнеры</label>
+              <label><input type="checkbox" value="code" /> Программисты</label>
             </div>
             <div class="filter-group">
               <p class="filter-title">Инструменты</p>
               <label><input type="checkbox" value="Blender" /> Blender</label>
+              <label><input type="checkbox" value="ProCreate" /> ProCreate</label>
               <label><input type="checkbox" value="Unreal" /> Unreal Engine</label>
               <label><input type="checkbox" value="Unity" /> Unity</label>
             </div>
@@ -88,13 +96,13 @@
               <label><input type="checkbox" value="fantasy" /> Fantasy</label>
               <label><input type="checkbox" value="sci-fi" /> Sci-fi</label>
               <label><input type="checkbox" value="game" /> Game art</label>
+              <label><input type="checkbox" value="concept" /> Концепт</label>
             </div>
-            <button class="primary-button full" type="button" data-apply-filters>Применить</button>
+            <div class="filters-actions">
+              <button class="ghost-button" type="button" data-clear-filters>Сбросить</button>
+              <button class="primary-button full" type="button" data-apply-filters>Применить</button>
+            </div>
           </aside>
-
-          <section class="catalog" aria-label="Галерея проектов">
-            <div class="cards-grid" data-project-grid></div>
-          </section>
         </div>
       </section>
     </template>

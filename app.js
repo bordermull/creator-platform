@@ -230,10 +230,11 @@ function renderHome() {
   const grid = app.querySelector("[data-project-grid]");
   const search = app.querySelector("[data-search]");
   const filters = app.querySelector("[data-filters]");
-  const authedToolbar = app.querySelector("[data-authed-toolbar]");
+  const filtersOverlay = app.querySelector("[data-filters-overlay]");
+  const uploadShortcut = app.querySelector("[data-upload-shortcut]");
 
   home.classList.toggle("is-authed", state.isAuthed);
-  authedToolbar.hidden = !state.isAuthed;
+  uploadShortcut.hidden = !state.isAuthed;
   renderCards(grid, filteredProjects());
 
   if (search) {
@@ -245,22 +246,39 @@ function renderHome() {
   }
 
   app.querySelector("[data-filter-toggle]").addEventListener("click", () => {
-    filters.classList.toggle("open");
+    filtersOverlay.hidden = false;
+    filters.classList.add("open");
+  });
+
+  app.querySelector("[data-close-filters]").addEventListener("click", () => {
+    closeFilters();
+  });
+
+  filtersOverlay.addEventListener("click", (event) => {
+    if (event.target === filtersOverlay) closeFilters();
   });
 
   app.querySelector("[data-clear-filters]").addEventListener("click", () => {
-    app.querySelectorAll("input[type='checkbox']").forEach((input) => {
+    filters.querySelectorAll("input[type='checkbox']").forEach((input) => {
       input.checked = false;
     });
   });
 
   app.querySelector("[data-apply-filters]").addEventListener("click", () => {
-    filters.classList.remove("open");
+    closeFilters();
   });
 
-  app.querySelector("[data-upload-shortcut]").addEventListener("click", () => {
+  uploadShortcut.addEventListener("click", () => {
     window.location.hash = "upload";
   });
+}
+
+function closeFilters() {
+  const overlay = app.querySelector("[data-filters-overlay]");
+  const filters = app.querySelector("[data-filters]");
+  if (!overlay || overlay.hidden) return;
+  filters?.classList.remove("open");
+  overlay.hidden = true;
 }
 
 function openAuth(mode = "login") {
@@ -472,6 +490,7 @@ window.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     closeAuth();
     closeAccountMenu();
+    closeFilters();
   }
 });
 

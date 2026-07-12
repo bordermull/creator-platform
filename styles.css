@@ -162,6 +162,19 @@ img {
   border-color: #fff;
 }
 
+.filter-toggle {
+  width: 137px;
+  min-height: 44px;
+  padding: 8px 18px;
+  border-width: 2px;
+  font-size: 16px;
+}
+
+.filter-toggle:hover,
+.filter-toggle:focus-visible {
+  background: var(--accent);
+}
+
 .login-button {
   display: inline-grid;
   place-items: center;
@@ -343,9 +356,9 @@ img {
 
 .catalog-toolbar {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   align-items: center;
-  margin: 0 0 24px;
+  margin: 0 0 16px;
 }
 
 .catalog-toolbar[hidden] {
@@ -358,12 +371,12 @@ img {
   gap: 10px;
   flex: 1;
   min-width: 0;
-  height: 48px;
-  padding: 0 18px;
-  border: 1px solid #5e5e5e;
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
   border-radius: 999px;
-  background: #fff;
-  color: #5e5e5e;
+  background: #373737;
+  color: #8f8f8f;
   font-size: 15px;
 }
 
@@ -373,31 +386,46 @@ img {
   border: 0;
   outline: 0;
   background: transparent;
-  color: #171717;
+  color: #fff;
+}
+
+.search input::placeholder {
+  color: #878787;
 }
 
 .catalog-layout {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
-  gap: 24px;
+  display: block;
 }
 
-.home-screen:not(.is-authed) .catalog-layout {
-  grid-template-columns: 1fr;
-}
-
-.home-screen:not(.is-authed) .filters-panel {
-  display: none;
+.filters-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: auto;
+  padding: 116px 18px 32px;
+  background: rgba(0, 0, 0, 0.62);
 }
 
 .filters-panel {
-  position: sticky;
-  top: 92px;
-  align-self: start;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: var(--card-radius);
-  background: rgba(0, 0, 0, 0.92);
+  width: min(528px, 100%);
+  max-height: calc(100vh - 148px);
+  overflow: auto;
+  padding: 20px 20px 20px;
+  border: 2px solid #fff;
+  border-radius: 24px;
+  background: #171717;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  transform: translateX(-16px);
+  opacity: 0;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.filters-panel.open {
+  transform: translateX(0);
+  opacity: 1;
 }
 
 .filters-head {
@@ -405,7 +433,7 @@ img {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .filters-head h2,
@@ -415,29 +443,66 @@ img {
   text-transform: uppercase;
 }
 
+.filter-close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #373737;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.filter-close:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 .filter-group {
-  padding: 16px 0;
-  border-top: 1px solid #272727;
+  padding: 20px 0 18px;
+  border-top: 1px solid #373737;
 }
 
 .filter-title {
-  margin: 0 0 10px;
+  margin: 0 0 14px;
   color: #fff;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
 }
 
 .filter-group label {
   display: flex;
   align-items: center;
-  gap: 9px;
-  min-height: 28px;
+  gap: 16px;
+  min-height: 36px;
   color: #d5d5d5;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 input[type="checkbox"] {
   accent-color: var(--accent);
+}
+
+.filter-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  accent-color: #fff;
+}
+
+.filters-actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid #373737;
+}
+
+.upload-shortcut[hidden] {
+  display: none;
 }
 
 .cards-grid {
@@ -1210,7 +1275,6 @@ input[type="checkbox"] {
   }
 
   .home-intro,
-  .catalog-layout,
   .account-screen,
   .project-page,
   .upload-screen,
@@ -1226,13 +1290,8 @@ input[type="checkbox"] {
     min-height: 420px;
   }
 
-  .filters-panel {
-    position: static;
-    display: none;
-  }
-
-  .filters-panel.open {
-    display: block;
+  .filters-overlay {
+    padding-top: 96px;
   }
 
   .account-screen {
@@ -1321,8 +1380,29 @@ input[type="checkbox"] {
   }
 
   .catalog-toolbar {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-toggle {
+    width: auto;
+    min-width: 112px;
+  }
+
+  .search {
+    flex: 1 1 180px;
+  }
+
+  .filters-overlay {
+    padding: 86px 14px 22px;
+  }
+
+  .filters-panel {
+    max-height: calc(100vh - 108px);
+  }
+
+  .filters-actions {
+    grid-template-columns: 1fr;
   }
 
   .cards-grid {
