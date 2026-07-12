@@ -2,6 +2,7 @@ const assets = {
   home: "./assets/extracted/home-before-registration/",
   authedHome: "./assets/extracted/home-after-registration/",
   userProfile: "./assets/extracted/user-profile/",
+  account: "./assets/extracted/account-edit/",
   projectOwn: "./assets/extracted/project-own-liked/",
   projectForeign: "./assets/extracted/project-public-foreign/"
 };
@@ -122,6 +123,15 @@ function route() {
     return;
   }
 
+  if (hash === "account" || hash === "account/edit") {
+    if (!state.isAuthed) {
+      window.location.hash = "login";
+      return;
+    }
+    renderAccount(hash === "account/edit");
+    return;
+  }
+
   if (hash === "upload") {
     if (!state.isAuthed) {
       window.location.hash = "login";
@@ -148,8 +158,8 @@ function renderHeader() {
   authActions.innerHTML = state.isAuthed
     ? `
       <a class="ghost-button" href="#upload">Загрузить</a>
-      <a class="avatar-button" href="#profile" aria-label="Перейти в профиль">
-        <img src="${assets.authedHome}image-01.png" alt="" />
+      <a class="avatar-button" href="#account" aria-label="Перейти в личный кабинет">
+        <img src="${assets.account}image-01.png" alt="" />
       </a>
     `
     : `<a class="ghost-button" href="#login">Вход</a>`;
@@ -293,7 +303,7 @@ function submitAuth(event) {
   state.isAuthed = true;
   localStorage.setItem("creatur-auth", "true");
   document.querySelector("[data-modal-backdrop]")?.remove();
-  window.location.hash = state.authMode === "register" ? "profile" : "home";
+  window.location.hash = state.authMode === "register" ? "account" : "home";
   route();
 }
 
@@ -303,6 +313,41 @@ function renderProfile() {
     app.querySelector("[data-profile-grid]"),
     projects.filter((project) => project.author === "Виктор Жестянщиков")
   );
+}
+
+function renderAccount(editing = false) {
+  cloneTemplate("account-template");
+  const screen = app.querySelector("[data-account-screen]");
+  const accountView = app.querySelector("[data-account-view]");
+  const accountForm = app.querySelector("[data-account-form]");
+  const emptyState = app.querySelector("[data-account-empty]");
+  const preview = app.querySelector("[data-account-preview]");
+  const primary = app.querySelector("[data-account-primary]");
+  const secondary = app.querySelector("[data-account-secondary]");
+
+  screen.classList.toggle("is-editing", editing);
+  accountView.hidden = editing;
+  accountForm.hidden = !editing;
+  emptyState.hidden = editing;
+  preview.hidden = !editing;
+  primary.textContent = editing ? "Сохранить" : "Загрузить проект";
+  secondary.textContent = editing ? "Отменить" : "Редактировать";
+
+  app.querySelector("[data-edit-account]").addEventListener("click", () => {
+    window.location.hash = "account/edit";
+  });
+  app.querySelector("[data-account-upload]").addEventListener("click", () => {
+    window.location.hash = "upload";
+  });
+  primary.addEventListener("click", () => {
+    window.location.hash = editing ? "account" : "upload";
+  });
+  secondary.addEventListener("click", () => {
+    window.location.hash = editing ? "account" : "account/edit";
+  });
+  app.querySelector("[data-save-account]")?.addEventListener("click", () => {
+    window.location.hash = "account";
+  });
 }
 
 function renderUpload() {

@@ -151,6 +151,79 @@
       </section>
     </template>
 
+    <template id="account-template">
+      <section class="account-screen" data-account-screen>
+        <aside class="account-sidebar">
+          <div class="account-avatar">
+            <img src="./assets/extracted/account-edit/image-01.png" alt="Аватар пользователя" />
+            <button class="icon-action" type="button" data-edit-account aria-label="Редактировать профиль">✎</button>
+          </div>
+
+          <div class="account-summary" data-account-view>
+            <h1>Ваш профиль</h1>
+            <p>Добавьте описание, чтобы другие авторы быстрее понимали ваш стиль и опыт.</p>
+          </div>
+
+          <form class="account-form" data-account-form hidden>
+            <div class="field">
+              <label for="account-name">Имя профиля</label>
+              <input id="account-name" value="Виктор Жестянщиков" />
+            </div>
+            <div class="field">
+              <label for="account-about">Описание</label>
+              <textarea id="account-about" rows="5">3D-художник, концепт-дизайнер, автор игровых объектов.</textarea>
+            </div>
+          </form>
+
+          <dl class="account-stats">
+            <div><dt>Работ</dt><dd>0</dd></div>
+            <div><dt>Подписчиков</dt><dd>14</dd></div>
+            <div><dt>Лайков</dt><dd>0</dd></div>
+          </dl>
+
+          <div class="account-actions">
+            <button class="primary-button full" type="button" data-account-primary>Загрузить проект</button>
+            <button class="ghost-button full" type="button" data-account-secondary>Редактировать</button>
+          </div>
+        </aside>
+
+        <section class="account-workspace">
+          <div class="account-empty-state" data-account-empty>
+            <div class="empty-mark">+</div>
+            <h2>Здесь будут ваши проекты</h2>
+            <p>Загрузите первую работу, заполните карточку проекта и покажите ее в общей галерее.</p>
+            <button class="primary-button" type="button" data-account-upload>Добавить проект</button>
+          </div>
+
+          <div class="account-edit-preview" data-account-preview hidden>
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Предпросмотр профиля</p>
+                <h2>Так кабинет увидят после сохранения</h2>
+              </div>
+              <button class="primary-button" type="button" data-save-account>Сохранить</button>
+            </div>
+            <div class="cards-grid compact-grid">
+              <a class="project-card" href="#project/iron-gloves">
+                <div class="project-art">
+                  <img src="./assets/extracted/account-edit/image-02.png" alt="Концепт перчаток для силы" />
+                </div>
+                <div class="card-body">
+                  <img class="mini-avatar" src="./assets/extracted/account-edit/image-01.png" alt="" />
+                  <div class="card-content">
+                    <h3>Концепт перчаток для силы</h3>
+                    <p>Виктор Жестянщиков</p>
+                    <div class="tag-row"><span>3D</span><span>Blender</span><span>Game art</span></div>
+                    <div class="meta-row"><span>Черновик</span><span>0 лайков</span></div>
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
+      </section>
+    </template>
+
     <template id="upload-template">
       <section class="upload-screen">
         <div class="upload-drop" data-upload-drop>
