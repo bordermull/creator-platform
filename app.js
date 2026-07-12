@@ -3,6 +3,8 @@ const assets = {
   authedHome: "./assets/extracted/home-after-registration/",
   userProfile: "./assets/extracted/user-profile/",
   account: "./assets/extracted/account-edit/",
+  uploadEmpty: "./assets/extracted/project-upload-empty/",
+  uploadFilled: "./assets/extracted/project-upload-filled/",
   projectOwn: "./assets/extracted/project-own-liked/",
   projectForeign: "./assets/extracted/project-public-foreign/"
 };
@@ -132,12 +134,12 @@ function route() {
     return;
   }
 
-  if (hash === "upload") {
+  if (hash === "upload" || hash === "upload/filled") {
     if (!state.isAuthed) {
       window.location.hash = "login";
       return;
     }
-    renderUpload();
+    renderUpload(hash === "upload/filled");
     return;
   }
 
@@ -350,8 +352,55 @@ function renderAccount(editing = false) {
   });
 }
 
-function renderUpload() {
+function renderUpload(filled = false) {
   cloneTemplate("upload-template");
+  const screen = app.querySelector("[data-upload-screen]");
+  const image = app.querySelector("[data-upload-image]");
+  const copy = app.querySelector("[data-upload-copy]");
+  const title = app.querySelector("[data-upload-title]");
+  const description = app.querySelector("[data-upload-desc]");
+  const status = app.querySelector("[data-upload-status]");
+
+  screen.classList.toggle("is-filled", filled);
+  image.src = filled ? `${assets.uploadFilled}image-02.png` : `${assets.uploadEmpty}image-01.png`;
+  copy.textContent = filled ? "Обложка загружена" : "Загрузите обложку проекта";
+  title.value = filled ? "Кинетический куб: путь портала" : "";
+  description.value = filled
+    ? "Короткое описание проекта, задачи, инструментов и художественного решения. Работа построена вокруг портального объекта, плотного света и игрового настроения."
+    : "";
+
+  app.querySelectorAll("[data-tag]").forEach((button) => {
+    const selected = filled && ["3D", "Blender", "Game art", "Sci-fi"].includes(button.dataset.tag);
+    button.classList.toggle("selected", selected);
+    button.addEventListener("click", () => {
+      button.classList.toggle("selected");
+    });
+  });
+
+  app.querySelectorAll("[data-upload-fill]").forEach((button) => {
+    button.addEventListener("click", () => {
+      window.location.hash = "upload/filled";
+    });
+  });
+
+  app.querySelector("[data-upload-drop]").addEventListener("click", () => {
+    if (!screen.classList.contains("is-filled")) {
+      window.location.hash = "upload/filled";
+    }
+  });
+
+  app.querySelector("[data-upload-reset]").addEventListener("click", () => {
+    window.location.hash = "upload";
+  });
+
+  app.querySelector("[data-upload-form]").addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!title.value.trim() || !description.value.trim()) {
+      status.textContent = "Заполните название и описание проекта.";
+      return;
+    }
+    status.textContent = "Проект подготовлен к публикации. Следующий шаг - страница проекта.";
+  });
 }
 
 function renderProject(id) {

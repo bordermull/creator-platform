@@ -225,30 +225,51 @@
     </template>
 
     <template id="upload-template">
-      <section class="upload-screen">
-        <div class="upload-drop" data-upload-drop>
-          <img src="./assets/extracted/project-upload-empty/image-01.png" alt="" />
-          <div class="upload-drop-copy">
-            <div class="upload-plus">+</div>
-            <p>Загрузите изображение</p>
+      <section class="upload-screen" data-upload-screen>
+        <div class="upload-workspace">
+          <button class="upload-drop" type="button" data-upload-drop>
+            <img data-upload-image src="./assets/extracted/project-upload-empty/image-01.png" alt="" />
+            <span class="upload-plus" aria-hidden="true">+</span>
+            <span class="upload-drop-copy" data-upload-copy>Загрузите обложку проекта</span>
+          </button>
+
+          <div class="upload-preview-strip" aria-label="Кадры проекта">
+            <button class="preview-arrow" type="button" aria-label="Предыдущий кадр">‹</button>
+            <button class="preview-tile active" type="button" data-upload-fill>
+              <span></span>
+            </button>
+            <button class="preview-tile" type="button" data-upload-fill>
+              <span></span>
+            </button>
+            <button class="preview-arrow" type="button" aria-label="Следующий кадр">›</button>
           </div>
         </div>
-        <form class="upload-form">
+
+        <form class="upload-form" data-upload-form>
           <div class="field">
-            <label for="project-title">Название проекта</label>
-            <input id="project-title" value="Кинетический куб: путь портала" />
+            <label for="project-title">Название</label>
+            <input id="project-title" name="title" data-upload-title placeholder="Название проекта" />
           </div>
           <div class="field">
             <label for="project-desc">Описание</label>
-            <textarea id="project-desc" rows="8">Короткое описание проекта, задачи, инструментов и художественного решения.</textarea>
+            <textarea id="project-desc" name="description" data-upload-desc rows="5" placeholder="Расскажите о проекте, инструментах и идее"></textarea>
           </div>
-          <div class="tag-cloud" aria-label="Теги проекта">
-            <button type="button">3D</button>
-            <button type="button">Blender</button>
-            <button type="button">Sci-fi</button>
-            <button type="button">Game art</button>
+          <div class="field">
+            <label>Теги</label>
+            <div class="tag-cloud" aria-label="Теги проекта">
+              <button type="button" data-tag="3D">3D</button>
+              <button type="button" data-tag="Blender">Blender</button>
+              <button type="button" data-tag="Game art">Game art</button>
+              <button type="button" data-tag="Sci-fi">Sci-fi</button>
+              <button type="button" data-tag="Concept">Concept</button>
+              <button type="button" data-tag="Motion">Motion</button>
+            </div>
           </div>
-          <button class="primary-button full" type="button">Опубликовать</button>
+          <div class="upload-actions">
+            <button class="ghost-button" type="button" data-upload-reset>Очистить</button>
+            <button class="primary-button full" type="submit">Опубликовать</button>
+          </div>
+          <p class="upload-status" data-upload-status aria-live="polite"></p>
         </form>
       </section>
     </template>
