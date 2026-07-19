@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("SQLITE_DATABASE_URL")
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  displayName         String
+  bio                 String?
+  avatarFileId        String?
+  role                String               @default("USER")
+  emailVerifiedAt     DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  projects            Project[]            @relation("ProjectOwner")
+  uploadedFiles       ProjectFile[]        @relation("UploadedFiles")
+  likes               Like[]
+  views               ProjectView[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Project {
+  id          String            @id @default(cuid())
+  ownerId     String
+  title       String
+  description String
+  coverFileId String?
+  status      String            @default("DRAFT")
+  publishedAt DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  owner       User              @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  files       ProjectFile[]
+  categories  ProjectCategory[]
+  likes       Like[]
+  views       ProjectView[]
+
+  @@index([ownerId])
+  @@index([status, publishedAt])
+}
+
+model ProjectFile {
+  id           String   @id @default(cuid())
+  projectId    String
+  uploaderId   String
+  storageKey   String
+  originalName String
+  mimeType     String
+  sizeBytes    BigInt
+  kind         String   @default("OTHER")
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader     User     @relation("UploadedFiles", fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, sortOrder])
+  @@index([uploaderId])
+}
+
+model Category {
+  id        String            @id @default(cuid())
+  slug      String
+  name      String
+  group     String
+  isActive  Boolean           @default(true)
+  sortOrder Int               @default(0)
+  projects  ProjectCategory[]
+
+  @@unique([group, slug])
+}
+
+model ProjectCategory {
+  projectId  String
+  categoryId String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@id([projectId, categoryId])
+}
+
+model Like {
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([userId, projectId])
+}
+
+model ProjectView {
+  id           String   @id @default(cuid())
+  projectId    String
+  viewerId     String?
+  anonymousKey String?
+  createdAt    DateTime @default(now())
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  viewer       User?    @relation(fields: [viewerId], references: [id], onDelete: SetNull)
+
+  @@index([projectId, createdAt])
+  @@index([viewerId])
+}
