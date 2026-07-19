@@ -10,14 +10,19 @@ import { projectsRouter } from "./routes/projects.js";
 
 export const app = express();
 
+// Prisma returns BigInt for large file sizes. JSON.stringify cannot serialize
+// BigInt by default, so Express gets a replacer before any API route responds.
 app.set("json replacer", (_key: string, value: unknown) => (
   typeof value === "bigint" ? value.toString() : value
 ));
 
+// Cookie-based auth needs CORS credentials enabled. The allowed origin is kept
+// in config so local frontend and future deployed frontend can differ cleanly.
 app.use(cors({
   origin: config.frontendOrigin,
   credentials: true
 }));
+
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
@@ -30,6 +35,8 @@ app.use("/api/categories", categoriesRouter);
 app.use("/api/projects", projectsRouter);
 app.use("/api/admin", adminRouter);
 
+// Route handlers pass validation and runtime errors here through next(error).
+// Zod errors are client mistakes, while unknown errors are hidden from clients.
 app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
   if (error instanceof ZodError) {
     response.status(400).json({ error: "Validation error", issues: error.issues });

@@ -14,10 +14,14 @@ export type AuthedRequest = Request & {
 };
 
 export function createSessionToken(user: SessionUser) {
+  // The token contains only the data needed on every protected request.
+  // Profile details are loaded from the database through /api/auth/me.
   return jwt.sign(user, config.jwtSecret, { expiresIn: "14d" });
 }
 
 export function setSessionCookie(response: Response, token: string) {
+  // httpOnly keeps the JWT away from frontend JavaScript. That lowers the
+  // impact of XSS compared with storing tokens in localStorage.
   response.cookie(authCookieName, token, {
     httpOnly: true,
     sameSite: "lax",
@@ -39,6 +43,8 @@ export function requireAuth(request: Request, response: Response, next: NextFunc
   }
 
   try {
+    // Downstream routes cast Request to AuthedRequest after this middleware.
+    // Keeping the session payload tiny makes this cast predictable.
     (request as AuthedRequest).user = jwt.verify(token, config.jwtSecret) as SessionUser;
     next();
   } catch {
@@ -47,6 +53,8 @@ export function requireAuth(request: Request, response: Response, next: NextFunc
 }
 
 export function requireAdmin(request: Request, response: Response, next: NextFunction) {
+  // Admin protection is layered on top of normal auth so every admin route
+  // first proves the user is logged in, then checks role-based permission.
   requireAuth(request, response, () => {
     if ((request as AuthedRequest).user.role !== "ADMIN") {
       response.status(403).json({ error: "Forbidden" });

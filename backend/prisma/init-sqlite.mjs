@@ -5,6 +5,9 @@ import path from "node:path";
 const databasePath = path.join(path.dirname(fileURLToPath(import.meta.url)), "dev.db");
 const database = new DatabaseSync(databasePath);
 
+// Prisma db push unexpectedly fails on this Windows machine, while Prisma can
+// still generate valid SQLite SQL. This script keeps local development unblocked
+// by creating the dev schema directly through Node's built-in SQLite module.
 database.exec(`
 PRAGMA foreign_keys = ON;
 

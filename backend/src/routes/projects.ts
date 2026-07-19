@@ -10,6 +10,8 @@ import { prisma } from "../lib/prisma.js";
 
 export const projectsRouter = Router();
 
+// The SQLite Prisma schema cannot use the PostgreSQL enum definitions, so file
+// kinds are kept as shared string constants that work with both local modes.
 const FileKind = {
   IMAGE: "IMAGE",
   VIDEO: "VIDEO",
@@ -22,17 +24,23 @@ const FileKind = {
 const upload = multer({
   storage: multer.diskStorage({
     destination(_request, _file, callback) {
+      // Upload storage is local for now. S3-compatible storage can replace this
+      // later without changing the public API contract.
       fs.mkdir(config.uploadDir, { recursive: true }).then(
         () => callback(null, config.uploadDir),
         (error) => callback(error, config.uploadDir)
       );
     },
     filename(_request, file, callback) {
+      // Preserve the extension for easier local inspection, but replace the
+      // original base name so different users cannot overwrite each other.
       const extension = path.extname(file.originalname).toLowerCase();
       callback(null, `${randomUUID()}${extension}`);
     }
   }),
   limits: {
+    // These limits keep the MVP useful for creative work while preventing an
+    // accidental unlimited upload from exhausting local disk space.
     files: 12,
     fileSize: 250 * 1024 * 1024
   }
@@ -44,6 +52,9 @@ projectsRouter.get("/", async (request, response, next) => {
       search: z.string().optional(),
       category: z.union([z.string(), z.array(z.string())]).optional()
     }).parse(request.query);
+
+    // Query strings can arrive as ?category=a or repeated as ?category=a&category=b.
+    // Normalizing to an array keeps the Prisma filter below simple.
     const categories = query.category
       ? Array.isArray(query.category)
         ? query.category
@@ -52,6 +63,8 @@ projectsRouter.get("/", async (request, response, next) => {
 
     const projects = await prisma.project.findMany({
       where: {
+        // Public catalog returns only published projects. Drafts and moderation
+        // states are reserved for owners and admins.
         status: "PUBLISHED",
         ...(query.search
           ? {
@@ -176,6 +189,9 @@ projectsRouter.delete("/:id/like", requireAuth, async (request, response, next) 
 projectsRouter.post("/:id/files", requireAuth, upload.array("files", 12), async (request, response, next) => {
   try {
     const user = (request as AuthedRequest).user;
+
+    // Users may upload only to their own projects. Admins can attach files to
+    // any project, which is useful for moderation and recovery workflows.
     const project = await prisma.project.findFirst({
       where: user.role === "ADMIN"
         ? { id: request.params.id }
@@ -235,6 +251,8 @@ function inferFileKind(file: Express.Multer.File) {
   const mime = file.mimetype.toLowerCase();
   const extension = path.extname(file.originalname).toLowerCase();
 
+  // MIME type is best for browser uploads, but model/archive formats often
+  // arrive as generic octet-stream, so extension checks are still necessary.
   if (mime.startsWith("image/")) return FileKind.IMAGE;
   if (mime.startsWith("video/")) return FileKind.VIDEO;
   if ([".fbx", ".obj", ".blend", ".glb", ".gltf", ".stl", ".usd", ".usdz"].includes(extension)) return FileKind.MODEL;

@@ -25,6 +25,9 @@ authRouter.post("/register", async (request, response, next) => {
     const input = registerSchema.parse(request.body);
     const passwordHash = await hashPassword(input.password);
     const usersCount = await prisma.user.count();
+
+    // For the MVP we create the first registered account as ADMIN. That gives
+    // a fresh local database an admin without requiring a separate setup script.
     const user = await prisma.user.create({
       data: {
         email: input.email.toLowerCase(),
@@ -81,6 +84,8 @@ authRouter.post("/password-reset/request", async (request, response, next) => {
     const { email } = z.object({ email: z.string().email() }).parse(request.body);
     const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
 
+    // The endpoint always returns 204, even when the email is unknown. That
+    // prevents attackers from using the reset form to enumerate registered users.
     if (user) {
       const token = crypto.randomBytes(32).toString("hex");
       const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
@@ -110,6 +115,8 @@ authRouter.post("/password-reset/confirm", async (request, response, next) => {
     const tokenHash = crypto.createHash("sha256").update(input.token).digest("hex");
     const resetToken = await prisma.passwordResetToken.findUnique({ where: { tokenHash } });
 
+    // Stored reset tokens are hashes, not raw tokens. If the database leaks,
+    // existing password reset links are still not directly recoverable.
     if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
       response.status(400).json({ error: "Invalid reset token" });
       return;
@@ -133,6 +140,7 @@ authRouter.post("/password-reset/confirm", async (request, response, next) => {
 });
 
 function publicUser(user: { id: string; email: string; displayName: string; bio: string | null; avatarFileId: string | null; role: string }) {
+  // Never return passwordHash or reset-token data through auth responses.
   return {
     id: user.id,
     email: user.email,
@@ -144,5 +152,7 @@ function publicUser(user: { id: string; email: string; displayName: string; bio:
 }
 
 function sessionRole(role: string) {
+  // SQLite dev mode stores roles as strings, while PostgreSQL uses an enum.
+  // This keeps the session payload strict in both modes.
   return role === "ADMIN" ? "ADMIN" : "USER";
 }

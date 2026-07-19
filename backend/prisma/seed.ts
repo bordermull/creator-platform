@@ -5,6 +5,8 @@ dotenv.config();
 
 const prisma = new PrismaClient();
 
+// The seed is intentionally independent from Prisma enums. PostgreSQL uses
+// real enums, while SQLite dev mode stores the same values as strings.
 const CategoryGroup = {
   SECTION: "SECTION",
   SOFTWARE: "SOFTWARE",
@@ -53,6 +55,8 @@ const categories = [
 ];
 
 async function main() {
+  // Upsert makes the seed repeatable. Running it again updates labels/order
+  // without duplicating categories in the database.
   for (const category of categories) {
     await prisma.category.upsert({
       where: {
