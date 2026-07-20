@@ -541,6 +541,7 @@ input[type="checkbox"] {
 }
 
 .project-art {
+  position: relative;
   overflow: hidden;
   border-radius: 18px;
   background: #fff;
@@ -956,6 +957,27 @@ input[type="checkbox"] {
   gap: 28px;
 }
 
+.account-projects {
+  display: grid;
+  gap: 28px;
+}
+
+.account-projects-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.account-project-card {
+  position: relative;
+}
+
+.account-status-pill {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
 .section-head {
   display: flex;
   align-items: end;
@@ -969,6 +991,150 @@ input[type="checkbox"] {
 
 .compact-grid {
   grid-template-columns: minmax(260px, 455px);
+}
+
+.admin-screen {
+  display: grid;
+  gap: 22px;
+  width: min(1500px, calc(100% - 52px));
+  min-height: calc(100vh - 190px);
+  margin: 54px auto 90px;
+}
+
+.admin-head {
+  align-items: start;
+}
+
+.admin-head h1 {
+  margin: 0;
+  color: var(--accent);
+  font-size: clamp(42px, 6vw, 92px);
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.admin-head p:not(.eyebrow) {
+  max-width: 680px;
+  color: #d6d6d6;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-tabs button,
+.status-pill {
+  border: 1px solid #333;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #171717;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.admin-tabs button.selected,
+.status-pill {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.admin-list {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-project {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+  padding: 14px;
+  border: 1px solid #333;
+  border-radius: 24px;
+  background: #000;
+}
+
+.admin-project.is-busy {
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+.admin-project-art {
+  display: block;
+  min-height: 190px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #262626;
+}
+
+.admin-project-art img {
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  object-fit: cover;
+}
+
+.admin-project-body {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-project-body h2 {
+  margin: 12px 0 8px;
+  font-size: clamp(24px, 3vw, 44px);
+  line-height: 1;
+}
+
+.admin-project-body p {
+  max-width: 820px;
+  margin: 0;
+  color: #d0d0d0;
+  line-height: 1.5;
+}
+
+.admin-project-meta,
+.admin-project-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-project-meta {
+  color: #a8a8a8;
+  font-size: 14px;
+}
+
+.admin-project-actions .ghost-button,
+.admin-project-actions .primary-button {
+  min-width: 140px;
+}
+
+.admin-empty {
+  min-height: 260px;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  padding: 28px;
+  border: 1px solid #333;
+  border-radius: 24px;
+  background: #000;
+  text-align: center;
+}
+
+.admin-empty h2,
+.admin-empty p {
+  margin: 0;
+}
+
+.admin-empty p {
+  max-width: 560px;
+  color: #cfcfcf;
+  line-height: 1.5;
 }
 
 .upload-screen {
@@ -1290,6 +1456,7 @@ input[type="checkbox"] {
   }
 
   .account-screen,
+  .admin-project,
   .project-page,
   .upload-screen,
   .auth-modal {
@@ -1382,6 +1549,7 @@ input[type="checkbox"] {
   .profile-hero,
   .profile-catalog,
   .account-screen,
+  .admin-screen,
   .upload-screen,
   .project-page {
     width: min(100% - 28px, var(--max));

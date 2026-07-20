@@ -148,8 +148,8 @@
           </div>
 
           <div class="account-summary" data-account-view>
-            <h1>Ваш профиль</h1>
-            <p>Добавьте описание, чтобы другие авторы быстрее понимали ваш стиль и опыт.</p>
+            <h1 data-account-name>Ваш профиль</h1>
+            <p data-account-copy>Добавьте описание, чтобы другие авторы быстрее понимали ваш стиль и опыт.</p>
           </div>
 
           <form class="account-form" data-account-form hidden>
@@ -164,9 +164,9 @@
           </form>
 
           <dl class="account-stats">
-            <div><dt>Работ</dt><dd>0</dd></div>
-            <div><dt>Подписчиков</dt><dd>14</dd></div>
-            <div><dt>Лайков</dt><dd>0</dd></div>
+            <div><dt>Работ</dt><dd data-account-projects-count>0</dd></div>
+            <div><dt>На модерации</dt><dd data-account-pending-count>0</dd></div>
+            <div><dt>Лайков</dt><dd data-account-likes-count>0</dd></div>
           </dl>
 
           <div class="account-actions">
@@ -208,6 +208,8 @@
               </a>
             </div>
           </div>
+
+          <div class="account-projects" data-account-projects hidden></div>
         </section>
       </section>
     </template>
@@ -220,6 +222,13 @@
             <span class="upload-plus" aria-hidden="true">+</span>
             <span class="upload-drop-copy" data-upload-copy>Загрузите обложку проекта</span>
           </button>
+          <input
+            data-upload-files
+            type="file"
+            multiple
+            hidden
+            accept="image/*,video/*,.fbx,.obj,.blend,.glb,.gltf,.stl,.usd,.usdz,.zip,.rar,.7z,.pdf,.txt,.md,.doc,.docx"
+          />
 
           <div class="upload-preview-strip" aria-label="Кадры проекта">
             <button class="preview-arrow" type="button" aria-label="Предыдущий кадр">‹</button>
@@ -255,7 +264,7 @@
           </div>
           <div class="upload-actions">
             <button class="ghost-button" type="button" data-upload-reset>Очистить</button>
-            <button class="primary-button full" type="submit">Опубликовать</button>
+            <button class="primary-button full" type="submit" data-upload-submit>Опубликовать</button>
           </div>
           <p class="upload-status" data-upload-status aria-live="polite"></p>
         </form>
@@ -264,6 +273,29 @@
 
     <template id="project-template">
       <section class="project-page" data-project-page></section>
+    </template>
+
+    <template id="admin-template">
+      <section class="admin-screen" data-admin-screen>
+        <div class="section-head admin-head">
+          <div>
+            <p class="eyebrow">Админ-панель</p>
+            <h1>Модерация проектов</h1>
+            <p>Проверяйте новые работы, открывайте карточку проекта и публикуйте только готовые материалы.</p>
+          </div>
+          <a class="ghost-button" href="#home">В каталог</a>
+        </div>
+
+        <div class="admin-tabs" data-admin-tabs aria-label="Фильтр проектов по статусу">
+          <button type="button" data-admin-status="PENDING">На модерации</button>
+          <button type="button" data-admin-status="PUBLISHED">Опубликованные</button>
+          <button type="button" data-admin-status="REJECTED">Отклонённые</button>
+          <button type="button" data-admin-status="ALL">Все</button>
+        </div>
+
+        <p class="upload-status" data-admin-status-copy aria-live="polite"></p>
+        <div class="admin-list" data-admin-list></div>
+      </section>
     </template>
 
     <script src="./app.js"></script>

@@ -7,6 +7,7 @@ import { z } from "zod";
 import { config } from "../config.js";
 import { requireAuth, type AuthedRequest } from "../lib/auth.js";
 import { prisma } from "../lib/prisma.js";
+import { toProjectDto } from "../lib/project-dto.js";
 
 export const projectsRouter = Router();
 
@@ -61,6 +62,8 @@ projectsRouter.get("/", async (request, response, next) => {
         : [query.category]
       : [];
 
+    const categorySlugs = categories.map(normalizeCategoryFilter).filter(Boolean);
+    const categoryFilters = await buildGroupedCategoryFilters(categorySlugs);
     const projects = await prisma.project.findMany({
       where: {
         // Public catalog returns only published projects. Drafts and moderation
@@ -75,28 +78,13 @@ projectsRouter.get("/", async (request, response, next) => {
               ]
             }
           : {}),
-        ...(categories.length
-          ? {
-              categories: {
-                some: {
-                  category: {
-                    slug: { in: categories }
-                  }
-                }
-              }
-            }
-          : {})
+        ...categoryFilters
       },
-      include: {
-        owner: true,
-        files: { orderBy: { sortOrder: "asc" } },
-        categories: { include: { category: true } },
-        _count: { select: { likes: true, views: true } }
-      },
+      include: projectInclude,
       orderBy: { publishedAt: "desc" }
     });
 
-    response.json({ projects });
+    response.json({ projects: projects.map(toProjectDto) });
   } catch (error) {
     next(error);
   }
@@ -107,21 +95,63 @@ projectsRouter.post("/", requireAuth, async (request, response, next) => {
     const input = z.object({
       title: z.string().min(2).max(140),
       description: z.string().min(1).max(5000),
-      categoryIds: z.array(z.string()).default([])
+      categoryIds: z.array(z.string()).default([]),
+      categorySlugs: z.array(z.string()).default([])
     }).parse(request.body);
     const user = (request as AuthedRequest).user;
+    const categoryIdsFromSlugs = input.categorySlugs.length
+      ? await prisma.category.findMany({
+          where: {
+            // The upload UI sends slugs because it should not know database ids.
+            // Unknown/inactive slugs are ignored instead of creating invalid
+            // project-category links.
+            slug: { in: input.categorySlugs.map(normalizeCategoryFilter).filter(Boolean) },
+            isActive: true
+          },
+          select: { id: true }
+        })
+      : [];
+    const categoryIds = [...new Set([
+      // Accepting both ids and slugs gives us room to evolve the frontend. Admin
+      // tools may eventually use ids, while the current static UI uses slugs.
+      ...input.categoryIds,
+      ...categoryIdsFromSlugs.map((category) => category.id)
+    ])];
     const project = await prisma.project.create({
       data: {
         ownerId: user.id,
         title: input.title,
         description: input.description,
         categories: {
-          create: input.categoryIds.map((categoryId) => ({ categoryId }))
+          create: categoryIds.map((categoryId) => ({ categoryId }))
         }
       }
     });
 
-    response.status(201).json({ project });
+    const createdProject = await prisma.project.findUniqueOrThrow({
+      where: { id: project.id },
+      include: projectInclude
+    });
+
+    response.status(201).json({ project: toProjectDto(createdProject) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+projectsRouter.get("/me", requireAuth, async (request, response, next) => {
+  try {
+    const user = (request as AuthedRequest).user;
+    const projects = await prisma.project.findMany({
+      // This route powers the personal account page, so it intentionally returns
+      // every project owned by the current user: DRAFT, PENDING, PUBLISHED and
+      // REJECTED. The public catalog route above remains PUBLISHED-only.
+      where: { ownerId: user.id },
+      include: projectInclude,
+      orderBy: { createdAt: "desc" }
+    });
+
+    response.json({ projects: projects.map(toProjectDto) });
   } catch (error) {
     next(error);
   }
@@ -129,17 +159,15 @@ projectsRouter.post("/", requireAuth, async (request, response, next) => {
 
 projectsRouter.get("/:id", async (request, response, next) => {
   try {
+    // Detail is public for now so newly uploaded PENDING projects can be opened
+    // by direct link after creation. The public catalog still hides non-published
+    // projects, so discoverability remains moderated.
     const project = await prisma.project.findUniqueOrThrow({
       where: { id: request.params.id },
-      include: {
-        owner: true,
-        files: { orderBy: { sortOrder: "asc" } },
-        categories: { include: { category: true } },
-        _count: { select: { likes: true, views: true } }
-      }
+      include: projectInclude
     });
 
-    response.json({ project });
+    response.json({ project: toProjectDto(project) });
   } catch (error) {
     next(error);
   }
@@ -147,12 +175,31 @@ projectsRouter.get("/:id", async (request, response, next) => {
 
 projectsRouter.post("/:id/submit", requireAuth, async (request, response, next) => {
   try {
+    const user = (request as AuthedRequest).user;
+    // Submit is owner/admin only. A normal logged-in user must not be able to
+    // move another author's draft into the moderation queue.
+    const existingProject = await prisma.project.findFirst({
+      where: user.role === "ADMIN"
+        ? { id: request.params.id }
+        : { id: request.params.id, ownerId: user.id }
+    });
+
+    if (!existingProject) {
+      response.status(404).json({ error: "Project not found" });
+      return;
+    }
+
     const project = await prisma.project.update({
       where: { id: request.params.id },
       data: { status: "PENDING" }
     });
 
-    response.json({ project });
+    const submittedProject = await prisma.project.findUniqueOrThrow({
+      where: { id: project.id },
+      include: projectInclude
+    });
+
+    response.json({ project: toProjectDto(submittedProject) });
   } catch (error) {
     next(error);
   }
@@ -204,6 +251,9 @@ projectsRouter.post("/:id/files", requireAuth, upload.array("files", 12), async 
     }
 
     const files = (request.files as Express.Multer.File[] | undefined) || [];
+    // File metadata is written in one transaction so partial database rows do
+    // not appear if one file record fails. The physical files are already on
+    // disk at this point; later we can add cleanup for failed transactions.
     const createdFiles = await prisma.$transaction(
       files.map((file, index) => prisma.projectFile.create({
         data: {
@@ -218,8 +268,31 @@ projectsRouter.post("/:id/files", requireAuth, upload.array("files", 12), async 
         }
       }))
     );
+    const firstImage = createdFiles.find((file) => file.kind === FileKind.IMAGE);
 
-    response.status(201).json({ files: createdFiles });
+    // The first uploaded image becomes the cover automatically. This keeps the
+    // MVP flow short: users do not need a separate “choose cover” control yet.
+    if (firstImage && !project.coverFileId) {
+      await prisma.project.update({
+        where: { id: project.id },
+        data: { coverFileId: firstImage.id }
+      });
+    }
+
+    response.status(201).json({
+      files: createdFiles.map((file) => ({
+        id: file.id,
+        projectId: file.projectId,
+        storageKey: file.storageKey,
+        originalName: file.originalName,
+        mimeType: file.mimeType,
+        // Prisma maps SQLite/PostgreSQL big integers to JS BigInt. JSON cannot
+        // serialize BigInt directly, so API responses expose a plain number.
+        sizeBytes: Number(file.sizeBytes),
+        kind: file.kind,
+        sortOrder: file.sortOrder
+      }))
+    });
   } catch (error) {
     next(error);
   }
@@ -260,4 +333,63 @@ function inferFileKind(file: Express.Multer.File) {
   if ([".pdf", ".txt", ".md", ".doc", ".docx"].includes(extension)) return FileKind.DOCUMENT;
 
   return FileKind.OTHER;
+}
+
+const projectInclude = {
+  owner: {
+    select: {
+      id: true,
+      displayName: true,
+      avatarFileId: true
+    }
+  },
+  files: { orderBy: { sortOrder: "asc" as const } },
+  categories: { include: { category: true } },
+  _count: { select: { likes: true, views: true } }
+} as const;
+
+function normalizeCategoryFilter(value: string) {
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, "-");
+
+  // These aliases bridge human UI labels and database slugs. Keep them small
+  // and explicit; if the list grows, move it to a shared category mapping.
+  if (normalized === "3d") return "3d";
+  if (normalized === "game-art") return "game";
+
+  return normalized;
+}
+
+async function buildGroupedCategoryFilters(categorySlugs: string[]) {
+  if (!categorySlugs.length) return {};
+
+  const selectedCategories = await prisma.category.findMany({
+    where: {
+      slug: { in: categorySlugs },
+      isActive: true
+    },
+    select: {
+      slug: true,
+      group: true
+    }
+  });
+
+  const slugsByGroup = selectedCategories.reduce<Record<string, string[]>>((groups, category) => {
+    groups[category.group] ||= [];
+    groups[category.group].push(category.slug);
+    return groups;
+  }, {});
+
+  // Frontend filters work as OR inside one group and AND between groups:
+  // one selected software OR another software, but software AND theme together.
+  const groupedFilters = Object.values(slugsByGroup).map((slugs) => ({
+    categories: {
+      some: {
+        category: {
+          slug: { in: slugs }
+        }
+      }
+    }
+  }));
+
+  return groupedFilters.length ? { AND: groupedFilters } : {};
 }

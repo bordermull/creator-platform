@@ -26,6 +26,10 @@ app.use(cors({
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
+// Uploaded files are stored locally in development. Serving them from the API
+// keeps user uploads available to the separate static frontend on port 4173.
+app.use("/uploads", express.static(config.uploadDir));
+
 app.get("/health", (_request, response) => {
   response.json({ ok: true });
 });

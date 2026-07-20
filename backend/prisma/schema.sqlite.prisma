@@ -44,6 +44,8 @@ model Project {
   description String
   coverFileId String?
   status      String            @default("DRAFT")
+  likesCount  Int               @default(0)
+  viewsCount  Int               @default(0)
   publishedAt DateTime?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt

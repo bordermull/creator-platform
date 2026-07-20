@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS "Project" (
   "description" TEXT NOT NULL,
   "coverFileId" TEXT,
   "status" TEXT NOT NULL DEFAULT 'DRAFT',
+  "likesCount" INTEGER NOT NULL DEFAULT 0,
+  "viewsCount" INTEGER NOT NULL DEFAULT 0,
   "publishedAt" DATETIME,
   "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" DATETIME NOT NULL,
@@ -109,6 +111,19 @@ CREATE UNIQUE INDEX IF NOT EXISTS "Category_group_slug_key" ON "Category"("group
 CREATE INDEX IF NOT EXISTS "ProjectView_projectId_createdAt_idx" ON "ProjectView"("projectId", "createdAt");
 CREATE INDEX IF NOT EXISTS "ProjectView_viewerId_idx" ON "ProjectView"("viewerId");
 `);
+
+const projectColumns = database.prepare(`PRAGMA table_info("Project")`).all();
+const projectColumnNames = new Set(projectColumns.map((column) => column.name));
+
+// Existing local dev databases are intentionally migrated in place. This keeps
+// the no-Docker setup painless while the formal PostgreSQL migrations evolve.
+if (!projectColumnNames.has("likesCount")) {
+  database.exec(`ALTER TABLE "Project" ADD COLUMN "likesCount" INTEGER NOT NULL DEFAULT 0`);
+}
+
+if (!projectColumnNames.has("viewsCount")) {
+  database.exec(`ALTER TABLE "Project" ADD COLUMN "viewsCount" INTEGER NOT NULL DEFAULT 0`);
+}
 
 database.close();
 console.log(`SQLite database ready at ${databasePath}`);
