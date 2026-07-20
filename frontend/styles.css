@@ -1288,6 +1288,62 @@ input[type="checkbox"] {
   background: #262626;
 }
 
+.upload-existing-files {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #333;
+  border-radius: 20px;
+  background: #000;
+}
+
+.upload-existing-files h3,
+.upload-existing-files p {
+  margin: 0;
+}
+
+.upload-existing-files p {
+  color: #cfcfcf;
+  line-height: 1.5;
+}
+
+.upload-existing-file-list {
+  display: grid;
+  gap: 10px;
+}
+
+.upload-existing-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #252525;
+  border-radius: 16px;
+  background: #080808;
+}
+
+.upload-existing-file div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.upload-existing-file strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-existing-file span {
+  color: #aaa;
+  font-size: 13px;
+}
+
+.upload-existing-file .ghost-button {
+  flex: 0 0 auto;
+}
+
 .preview-arrow,
 .preview-tile {
   display: grid;
@@ -1428,6 +1484,12 @@ input[type="checkbox"] {
 .like-button {
   width: 100%;
   margin: 14px 0 16px;
+}
+
+.project-edit-link {
+  width: 100%;
+  justify-content: center;
+  margin: -4px 0 14px;
 }
 
 .project-description {

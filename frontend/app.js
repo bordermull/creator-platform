@@ -230,6 +230,16 @@ function route() {
     return;
   }
 
+  if (hash.startsWith("project/") && hash.endsWith("/edit")) {
+    if (!state.isAuthed) {
+      window.location.hash = "login";
+      return;
+    }
+
+    renderProjectEditor(hash.split("/")[1]);
+    return;
+  }
+
   if (hash === "admin") {
     // We check auth here for UX, but backend admin routes still enforce the real
     // permission with requireAdmin. Frontend checks should never be the only
@@ -384,6 +394,7 @@ function mapApiProject(project) {
     avatar: project.author?.avatar || `${assets.account}image-01.png`,
     image: resolveProjectAssetUrl(project.image),
     category: displayCategories.length ? displayCategories : project.categoryLabels || [],
+    categorySlugs: project.categorySlugs || categories.map((category) => category.slug).filter(Boolean),
     // Local filtering still exists as a fallback when the backend is unavailable.
     // It needs both slugs and labels because old mock projects mix display names
     // and filter ids. This is transitional glue, not the final data model.
@@ -522,22 +533,53 @@ async function createProjectFromUpload({ title, description, categorySlugs, file
     body: JSON.stringify({ title, description, categorySlugs })
   });
 
-  if (files.length) {
-    const formData = new FormData();
-    // The backend multer route expects every uploaded item under the "files"
-    // field name. append() is repeated because the user can select many files.
-    files.forEach((file) => formData.append("files", file));
-    await apiMultipart(`/api/projects/${encodeURIComponent(project.id)}/files`, formData);
-  }
+  await uploadProjectFiles(project.id, files);
 
   // New projects do not become public immediately. Submit moves them from DRAFT
   // to PENDING so the future admin moderation screen can publish or reject them.
-  const { project: submittedProject } = await apiJson(`/api/projects/${encodeURIComponent(project.id)}/submit`, {
-    method: "POST"
-  });
+  const submittedProject = await submitProjectForModeration(project.id);
   const mappedProject = mapApiProject(submittedProject);
   upsertProject(mappedProject);
   return mappedProject;
+}
+
+async function updateProjectFromEditor(projectId, { title, description, categorySlugs, files }) {
+  // Editing keeps the same two-step structure as creation: metadata first,
+  // optional new files second, then submit. Existing files stay attached unless
+  // the user explicitly removes them from the edit screen.
+  const { project } = await apiJson(`/api/projects/${encodeURIComponent(projectId)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ title, description, categorySlugs })
+  });
+
+  await uploadProjectFiles(project.id, files);
+  const submittedProject = await submitProjectForModeration(project.id);
+  const mappedProject = mapApiProject(submittedProject);
+  upsertProject(mappedProject);
+  return mappedProject;
+}
+
+async function uploadProjectFiles(projectId, files) {
+  if (!files.length) return;
+
+  const formData = new FormData();
+  // The backend multer route expects every uploaded item under the "files"
+  // field name. append() is repeated because the user can select many files.
+  files.forEach((file) => formData.append("files", file));
+  await apiMultipart(`/api/projects/${encodeURIComponent(projectId)}/files`, formData);
+}
+
+async function deleteProjectFile(projectId, fileId) {
+  await apiJson(`/api/projects/${encodeURIComponent(projectId)}/files/${encodeURIComponent(fileId)}`, {
+    method: "DELETE"
+  });
+}
+
+async function submitProjectForModeration(projectId) {
+  const { project } = await apiJson(`/api/projects/${encodeURIComponent(projectId)}/submit`, {
+    method: "POST"
+  });
+  return project;
 }
 
 async function loadAdminProjects(status = "PENDING") {
@@ -1053,6 +1095,12 @@ function projectStatusLabel(status) {
   return labels[status] || "Без статуса";
 }
 
+function canEditProjectInUi(project) {
+  // Frontend uses this only for navigation/UX. Backend repeats the same rule and
+  // remains the real permission boundary for PATCH/upload/delete operations.
+  return ["DRAFT", "REJECTED"].includes(project.status);
+}
+
 function accountProjectCard(project) {
   const tags = project.category.length
     ? project.category.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")
@@ -1061,9 +1109,10 @@ function accountProjectCard(project) {
   const rejection = project.status === "REJECTED" && project.moderationNote
     ? `<p class="moderation-note account-moderation-note">Причина: ${escapeHtml(project.moderationNote)}</p>`
     : "";
+  const cardHref = canEditProjectInUi(project) ? `#project/${project.id}/edit` : `#project/${project.id}`;
 
   return `
-    <a class="project-card account-project-card" href="#project/${project.id}">
+    <a class="project-card account-project-card" href="${cardHref}">
       <div class="project-art">
         <img src="${project.image}" alt="${safeTitle}" loading="lazy" />
         <span class="status-pill account-status-pill">${projectStatusLabel(project.status)}</span>
@@ -1076,6 +1125,7 @@ function accountProjectCard(project) {
           ${rejection}
           <div class="tag-row">${tags}</div>
           <div class="meta-row">
+            ${canEditProjectInUi(project) ? "<span>Нажмите, чтобы исправить</span>" : ""}
             <span>${project.likes} лайков</span>
             <span>${project.views} просмотров</span>
           </div>
@@ -1085,7 +1135,11 @@ function accountProjectCard(project) {
   `;
 }
 
-function renderUpload(filled = false) {
+function renderProjectEditor(projectId) {
+  renderUpload(false, projectId);
+}
+
+function renderUpload(filled = false, editProjectId = null) {
   cloneTemplate("upload-template");
   const screen = app.querySelector("[data-upload-screen]");
   const image = app.querySelector("[data-upload-image]");
@@ -1095,15 +1149,23 @@ function renderUpload(filled = false) {
   const status = app.querySelector("[data-upload-status]");
   const fileInput = app.querySelector("[data-upload-files]");
   const submit = app.querySelector("[data-upload-submit]");
+  const reset = app.querySelector("[data-upload-reset]");
+  const existingFilesTarget = app.querySelector("[data-existing-files]");
+  const isEditing = Boolean(editProjectId);
   // These variables live inside renderUpload because the current static app
   // recreates the screen on every route change. Keeping upload state local makes
   // reset/navigation behavior predictable and avoids global stale File objects.
   let selectedFiles = [];
   let previewObjectUrl = "";
+  let editingProject = null;
+  let existingFiles = [];
 
   screen.classList.toggle("is-filled", filled);
   image.src = filled ? `${assets.uploadFilled}image-02.png` : `${assets.uploadEmpty}image-01.png`;
   copy.textContent = filled ? "Обложка загружена" : "Загрузите обложку проекта";
+  submit.textContent = isEditing ? "Сохранить и отправить" : "Опубликовать";
+  reset.textContent = isEditing ? "Отмена" : "Очистить";
+  status.textContent = isEditing ? "Загружаем проект для редактирования." : "";
   title.value = filled ? "Кинетический куб: путь портала" : "";
   description.value = filled
     ? "Короткое описание проекта, задачи, инструментов и художественного решения. Работа построена вокруг портального объекта, плотного света и игрового настроения."
@@ -1116,6 +1178,50 @@ function renderUpload(filled = false) {
       button.classList.toggle("selected");
     });
   });
+
+  const renderExistingFiles = () => {
+    if (!isEditing) return;
+
+    existingFilesTarget.hidden = false;
+    existingFilesTarget.innerHTML = `
+      <h3>Файлы проекта</h3>
+      <p>${existingFiles.length ? "Можно оставить текущие файлы, удалить лишние или добавить новые через область загрузки." : "Сейчас у проекта нет файлов. Добавьте хотя бы один перед повторной отправкой."}</p>
+      <div class="upload-existing-file-list">
+        ${existingFiles.map((file) => `
+          <article class="upload-existing-file">
+            <div>
+              <strong>${escapeHtml(file.name)}</strong>
+              <span>${fileKindLabel(file.kind)} · ${formatFileSize(file.sizeBytes)}</span>
+            </div>
+            <button class="ghost-button" type="button" data-delete-file="${file.id}">Удалить</button>
+          </article>
+        `).join("")}
+      </div>
+    `;
+
+    existingFilesTarget.querySelectorAll("[data-delete-file]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const fileId = button.dataset.deleteFile;
+        const fileName = existingFiles.find((file) => file.id === fileId)?.name || "файл";
+
+        if (!window.confirm(`Удалить файл "${fileName}" из проекта?`)) return;
+
+        button.disabled = true;
+        status.textContent = "Удаляем файл проекта.";
+
+        try {
+          await deleteProjectFile(editProjectId, fileId);
+          existingFiles = existingFiles.filter((file) => file.id !== fileId);
+          renderExistingFiles();
+          status.textContent = "Файл удалён. Не забудьте сохранить и повторно отправить проект.";
+        } catch (error) {
+          console.warn("File delete failed:", error);
+          button.disabled = false;
+          status.textContent = "Не удалось удалить файл. Проверьте backend и права доступа.";
+        }
+      });
+    });
+  };
 
   const showSelectedFiles = (files) => {
     selectedFiles = files;
@@ -1143,7 +1249,9 @@ function renderUpload(filled = false) {
 
     copy.textContent = selectedFiles.length
       ? `Выбрано файлов: ${selectedFiles.length}`
-      : "Загрузите обложку проекта";
+      : isEditing
+        ? "Добавьте новые файлы проекта"
+        : "Загрузите обложку проекта";
     status.textContent = selectedFiles.length
       ? `Готово к отправке файлов: ${selectedFiles.map((file) => file.name).join(", ")}`
       : "";
@@ -1175,9 +1283,9 @@ function renderUpload(filled = false) {
     fileInput.click();
   });
 
-  app.querySelector("[data-upload-reset]").addEventListener("click", () => {
+  reset.addEventListener("click", () => {
     if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
-    window.location.hash = "upload";
+    window.location.hash = isEditing ? `project/${editProjectId}` : "upload";
   });
 
   app.querySelector("[data-upload-form]").addEventListener("submit", async (event) => {
@@ -1189,33 +1297,77 @@ function renderUpload(filled = false) {
       return;
     }
 
-    if (!selectedFiles.length) {
+    if (!selectedFiles.length && (!isEditing || !existingFiles.length)) {
       status.textContent = "Добавьте хотя бы один файл проекта.";
       return;
     }
 
     submit.disabled = true;
-    submit.textContent = "Загружаем...";
-    status.textContent = "Создаём проект, загружаем файлы и отправляем на модерацию.";
+    submit.textContent = isEditing ? "Сохраняем..." : "Загружаем...";
+    status.textContent = isEditing
+      ? "Сохраняем изменения, добавляем новые файлы и повторно отправляем на модерацию."
+      : "Создаём проект, загружаем файлы и отправляем на модерацию.";
 
     try {
-      const project = await createProjectFromUpload({
+      const payload = {
         title: title.value.trim(),
         description: description.value.trim(),
         categorySlugs: selectedUploadCategorySlugs(screen),
         files: selectedFiles
-      });
+      };
+      const project = isEditing
+        ? await updateProjectFromEditor(editProjectId, payload)
+        : await createProjectFromUpload(payload);
 
-      status.textContent = "Проект отправлен на модерацию. Открываем страницу проекта.";
+      status.textContent = isEditing
+        ? "Изменения сохранены, проект снова отправлен на модерацию. Открываем страницу проекта."
+        : "Проект отправлен на модерацию. Открываем страницу проекта.";
       if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
       window.location.hash = `project/${project.id}`;
     } catch (error) {
       console.warn("Upload failed:", error);
       submit.disabled = false;
-      submit.textContent = "Опубликовать";
-      status.textContent = "Не удалось загрузить проект. Проверьте backend и попробуйте ещё раз.";
+      submit.textContent = isEditing ? "Сохранить и отправить" : "Опубликовать";
+      status.textContent = isEditing
+        ? "Не удалось сохранить проект. Проверьте статус проекта, backend и права доступа."
+        : "Не удалось загрузить проект. Проверьте backend и попробуйте ещё раз.";
     }
   });
+
+  if (isEditing) {
+    loadProjectFromApi(editProjectId).then((project) => {
+      if (window.location.hash !== `#project/${editProjectId}/edit` || !document.body.contains(screen)) return;
+
+      if (!project || !canEditProjectInUi(project)) {
+        app.innerHTML = `
+          <div class="project-empty">
+            <h1>Редактирование недоступно</h1>
+            <p>Редактировать можно только свои черновики и отклонённые проекты.</p>
+            <a class="primary-button" href="#account">Вернуться в кабинет</a>
+          </div>
+        `;
+        return;
+      }
+
+      editingProject = project;
+      existingFiles = Array.isArray(project.files) ? [...project.files] : [];
+      title.value = project.title;
+      description.value = project.description;
+      image.src = project.image || `${assets.uploadFilled}image-02.png`;
+      screen.classList.toggle("is-filled", true);
+      copy.textContent = "Редактируйте проект и добавьте файлы при необходимости";
+      status.textContent = project.status === "REJECTED" && project.moderationNote
+        ? `Причина отклонения: ${project.moderationNote}`
+        : "Внесите изменения и отправьте проект на модерацию.";
+
+      app.querySelectorAll("[data-tag]").forEach((button) => {
+        const slug = normalizeCategoryParam(button.dataset.tag || "");
+        button.classList.toggle("selected", (project.categorySlugs || []).includes(slug));
+      });
+
+      renderExistingFiles();
+    });
+  }
 }
 
 function renderAdminModeration(status = "PENDING") {
@@ -1419,6 +1571,9 @@ function renderProjectContent(target, project) {
     `
     : "";
   const safeTitle = escapeHtml(project.title);
+  const editLink = canEditProjectInUi(project)
+    ? `<a class="ghost-button project-edit-link" href="#project/${project.id}/edit">Редактировать проект</a>`
+    : "";
 
   target.innerHTML = `
     <aside class="project-sidebar">
@@ -1427,6 +1582,7 @@ function renderProjectContent(target, project) {
       <p>${escapeHtml(project.author)}</p>
       ${project.status && project.status !== "PUBLISHED" ? `<span class="status-pill">${projectStatusLabel(project.status)}</span>` : ""}
       <button class="primary-button like-button" type="button" data-like-button>Нравится: ${project.likes}</button>
+      ${editLink}
       ${rejection}
       <div class="project-description">${escapeHtml(project.description)}</div>
     </aside>

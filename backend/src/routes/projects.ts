@@ -47,6 +47,14 @@ const upload = multer({
   }
 });
 
+const projectMutationSchema = z.object({
+  title: z.string().min(2).max(140),
+  description: z.string().min(1).max(5000),
+  categoryIds: z.array(z.string()).default([]),
+  categorySlugs: z.array(z.string()).default([])
+});
+type ProjectMutationInput = z.infer<typeof projectMutationSchema>;
+
 projectsRouter.get("/", async (request, response, next) => {
   try {
     const query = z.object({
@@ -92,31 +100,9 @@ projectsRouter.get("/", async (request, response, next) => {
 
 projectsRouter.post("/", requireAuth, async (request, response, next) => {
   try {
-    const input = z.object({
-      title: z.string().min(2).max(140),
-      description: z.string().min(1).max(5000),
-      categoryIds: z.array(z.string()).default([]),
-      categorySlugs: z.array(z.string()).default([])
-    }).parse(request.body);
+    const input = projectMutationSchema.parse(request.body);
     const user = (request as AuthedRequest).user;
-    const categoryIdsFromSlugs = input.categorySlugs.length
-      ? await prisma.category.findMany({
-          where: {
-            // The upload UI sends slugs because it should not know database ids.
-            // Unknown/inactive slugs are ignored instead of creating invalid
-            // project-category links.
-            slug: { in: input.categorySlugs.map(normalizeCategoryFilter).filter(Boolean) },
-            isActive: true
-          },
-          select: { id: true }
-        })
-      : [];
-    const categoryIds = [...new Set([
-      // Accepting both ids and slugs gives us room to evolve the frontend. Admin
-      // tools may eventually use ids, while the current static UI uses slugs.
-      ...input.categoryIds,
-      ...categoryIdsFromSlugs.map((category) => category.id)
-    ])];
+    const categoryIds = await resolveCategoryIds(input);
     const project = await prisma.project.create({
       data: {
         ownerId: user.id,
@@ -152,6 +138,51 @@ projectsRouter.get("/me", requireAuth, async (request, response, next) => {
     });
 
     response.json({ projects: projects.map(toProjectDto) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+projectsRouter.patch("/:id", requireAuth, async (request, response, next) => {
+  try {
+    const input = projectMutationSchema.parse(request.body);
+    const user = (request as AuthedRequest).user;
+    const existingProject = await findEditableProjectForUser(request.params.id, user);
+
+    if (!existingProject) {
+      response.status(404).json({ error: "Project not found" });
+      return;
+    }
+
+    if (!canEditProjectContent(existingProject)) {
+      response.status(409).json({ error: "Only DRAFT and REJECTED projects can be edited" });
+      return;
+    }
+
+    const categoryIds = await resolveCategoryIds(input);
+
+    // Category links are replaced as one atomic edit. That keeps the UI simple:
+    // the form sends the full selected tag set, not a fragile add/remove diff.
+    await prisma.$transaction([
+      prisma.project.update({
+        where: { id: existingProject.id },
+        data: {
+          title: input.title,
+          description: input.description
+        }
+      }),
+      prisma.projectCategory.deleteMany({ where: { projectId: existingProject.id } }),
+      ...categoryIds.map((categoryId) => prisma.projectCategory.create({
+        data: { projectId: existingProject.id, categoryId }
+      }))
+    ]);
+
+    const project = await prisma.project.findUniqueOrThrow({
+      where: { id: existingProject.id },
+      include: projectInclude
+    });
+
+    response.json({ project: toProjectDto(project) });
   } catch (error) {
     next(error);
   }
@@ -244,6 +275,11 @@ projectsRouter.post("/:id/submit", requireAuth, async (request, response, next) 
       return;
     }
 
+    if (!canEditProjectContent(existingProject)) {
+      response.status(409).json({ error: "Only DRAFT and REJECTED projects can be submitted" });
+      return;
+    }
+
     const project = await prisma.project.update({
       where: { id: request.params.id },
       data: {
@@ -294,23 +330,34 @@ projectsRouter.delete("/:id/like", requireAuth, async (request, response, next) 
 });
 
 projectsRouter.post("/:id/files", requireAuth, upload.array("files", 12), async (request, response, next) => {
+  let filesPersisted = false;
+
   try {
     const user = (request as AuthedRequest).user;
+    const files = (request.files as Express.Multer.File[] | undefined) || [];
 
-    // Users may upload only to their own projects. Admins can attach files to
-    // any project, which is useful for moderation and recovery workflows.
-    const project = await prisma.project.findFirst({
-      where: user.role === "ADMIN"
-        ? { id: request.params.id }
-        : { id: request.params.id, ownerId: user.id }
-    });
+    // Users may upload only to editable projects. A submitted or published
+    // project is frozen so files cannot change while moderation/public viewers
+    // may be looking at it.
+    const project = await findEditableProjectForUser(request.params.id, user);
 
     if (!project) {
+      await cleanupUploadedFiles(files);
       response.status(404).json({ error: "Project not found" });
       return;
     }
 
-    const files = (request.files as Express.Multer.File[] | undefined) || [];
+    if (!canEditProjectContent(project)) {
+      await cleanupUploadedFiles(files);
+      response.status(409).json({ error: "Only DRAFT and REJECTED projects can be edited" });
+      return;
+    }
+
+    const sortOrderAggregate = await prisma.projectFile.aggregate({
+      where: { projectId: project.id },
+      _max: { sortOrder: true }
+    });
+    const nextSortOrder = (sortOrderAggregate._max.sortOrder ?? -1) + 1;
     // File metadata is written in one transaction so partial database rows do
     // not appear if one file record fails. The physical files are already on
     // disk at this point; later we can add cleanup for failed transactions.
@@ -324,10 +371,11 @@ projectsRouter.post("/:id/files", requireAuth, upload.array("files", 12), async 
           mimeType: file.mimetype,
           sizeBytes: BigInt(file.size),
           kind: inferFileKind(file),
-          sortOrder: index
+          sortOrder: nextSortOrder + index
         }
       }))
     );
+    filesPersisted = true;
     const firstImage = createdFiles.find((file) => file.kind === FileKind.IMAGE);
 
     // The first uploaded image becomes the cover automatically. This keeps the
@@ -354,6 +402,9 @@ projectsRouter.post("/:id/files", requireAuth, upload.array("files", 12), async 
       }))
     });
   } catch (error) {
+    if (!filesPersisted) {
+      await cleanupUploadedFiles((request.files as Express.Multer.File[] | undefined) || []);
+    }
     next(error);
   }
 });
@@ -361,6 +412,18 @@ projectsRouter.post("/:id/files", requireAuth, upload.array("files", 12), async 
 projectsRouter.delete("/:id/files/:fileId", requireAuth, async (request, response, next) => {
   try {
     const user = (request as AuthedRequest).user;
+    const project = await findEditableProjectForUser(request.params.id, user);
+
+    if (!project) {
+      response.status(404).json({ error: "Project not found" });
+      return;
+    }
+
+    if (!canEditProjectContent(project)) {
+      response.status(409).json({ error: "Only DRAFT and REJECTED projects can be edited" });
+      return;
+    }
+
     const file = await prisma.projectFile.findFirst({
       where: user.role === "ADMIN"
         ? { id: request.params.fileId, projectId: request.params.id }
@@ -373,6 +436,12 @@ projectsRouter.delete("/:id/files/:fileId", requireAuth, async (request, respons
     }
 
     await prisma.projectFile.delete({ where: { id: file.id } });
+    if (project.coverFileId === file.id) {
+      await prisma.project.update({
+        where: { id: project.id },
+        data: { coverFileId: null }
+      });
+    }
     await fs.rm(path.join(config.uploadDir, file.storageKey), { force: true });
     response.status(204).end();
   } catch (error) {
@@ -439,6 +508,13 @@ function isBrowserPreviewableModel(extension: string) {
   return [".glb", ".gltf"].includes(extension);
 }
 
+async function cleanupUploadedFiles(files: Express.Multer.File[]) {
+  // Multer writes files before the route body runs. If authorization, status
+  // checks, or database writes fail, we must remove those just-uploaded physical
+  // files so rejected requests do not slowly litter local storage.
+  await Promise.all(files.map((file) => fs.rm(file.path, { force: true })));
+}
+
 const projectInclude = {
   owner: {
     select: {
@@ -458,6 +534,21 @@ function canViewProject(project: { ownerId: string; status: string }, sessionUse
   return sessionUser.role === "ADMIN" || project.ownerId === sessionUser.id;
 }
 
+function canEditProjectContent(project: { status: string }) {
+  // Edits are allowed only before moderation or after rejection. PENDING is
+  // frozen so moderators review a stable snapshot; PUBLISHED is frozen so the
+  // public catalog cannot silently change under viewers.
+  return ["DRAFT", "REJECTED"].includes(project.status);
+}
+
+async function findEditableProjectForUser(projectId: string, user: SessionUser) {
+  return prisma.project.findFirst({
+    where: user.role === "ADMIN"
+      ? { id: projectId }
+      : { id: projectId, ownerId: user.id }
+  });
+}
+
 async function findViewableProject(projectId: string, sessionUser: SessionUser | null) {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -466,6 +557,28 @@ async function findViewableProject(projectId: string, sessionUser: SessionUser |
 
   if (!project || !canViewProject(project, sessionUser)) return null;
   return project;
+}
+
+async function resolveCategoryIds(input: Pick<ProjectMutationInput, "categoryIds" | "categorySlugs">) {
+  const categoryIdsFromSlugs = input.categorySlugs.length
+    ? await prisma.category.findMany({
+        where: {
+          // The upload/edit UI sends slugs because it should not know database
+          // ids. Unknown/inactive slugs are ignored instead of creating invalid
+          // project-category links.
+          slug: { in: input.categorySlugs.map(normalizeCategoryFilter).filter(Boolean) },
+          isActive: true
+        },
+        select: { id: true }
+      })
+    : [];
+
+  return [...new Set([
+    // Accepting both ids and slugs gives us room to evolve the frontend. Admin
+    // tools may eventually use ids, while the current static UI uses slugs.
+    ...input.categoryIds,
+    ...categoryIdsFromSlugs.map((category) => category.id)
+  ])];
 }
 
 function normalizeCategoryFilter(value: string) {

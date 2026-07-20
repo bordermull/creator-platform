@@ -161,6 +161,8 @@ Upload UI теперь создаёт настоящий проект:
 4. проект переводится из `DRAFT` в `PENDING` через `POST /api/projects/:id/submit`;
 5. frontend открывает detail page созданного проекта, даже если он ещё не опубликован.
 
+Редактирование проекта тоже уже подключено к backend. Автор может открыть `DRAFT` или `REJECTED` проект из личного кабинета или detail page, изменить название, описание и теги, удалить лишние файлы, добавить новые файлы и повторно отправить проект на модерацию. `PENDING` и `PUBLISHED` проекты намеренно заморожены: первый уже находится на проверке, второй уже виден публично и не должен меняться “за спиной” каталога.
+
 Загруженные файлы больше не раздаются публично через `/uploads/...`. Для preview используется защищённый endpoint `GET /api/projects/:id/files/:fileId/preview`, который проверяет статус проекта и текущую cookie-сессию. Старые Figma/export ассеты остаются локальными `/assets/...`, потому что это не пользовательские upload-файлы и они нужны только для демо-визуала.
 
 На странице проекта сейчас показываются:
@@ -177,6 +179,8 @@ Download-кнопок пока нет намеренно: на этом этап
 3D-preview ограничен форматами `.glb` и `.gltf`. Это осознанное MVP-решение: эти форматы хорошо поддерживаются браузерным viewer-компонентом без серверной конвертации. Более “рабочие” авторские форматы вроде `.fbx`, `.obj`, `.blend` и `.stl` пока показываются как файлы проекта, но не открываются inline, потому что для качественного просмотра им обычно нужен отдельный pipeline: конвертация, обработка материалов, текстур, масштаба и предпросмотр ошибок.
 
 Личный кабинет теперь тоже подключён к backend. После входа страница `#account` вызывает `GET /api/projects/me` и показывает проекты текущего пользователя со всеми статусами: `DRAFT`, `PENDING`, `PUBLISHED`, `REJECTED`. Это отличается от публичного каталога: каталог намеренно показывает только опубликованные проекты, а кабинет нужен именно для контроля своего workflow.
+
+Карточки `DRAFT` и `REJECTED` в кабинете ведут в редактор `#project/:id/edit`. Для `REJECTED` проекта карточка показывает причину отклонения, чтобы автор видел, что именно нужно исправить перед повторной отправкой.
 
 Admin UI доступен по `#admin` только пользователям с ролью `ADMIN`. В seed-данных есть готовый администратор:
 
@@ -234,8 +238,10 @@ Backend — это Express + TypeScript API с Prisma в качестве сло
 - `GET /api/projects/:id` — detail DTO конкретного проекта; публично только для `PUBLISHED`, приватные статусы только owner/admin;
 - `GET /api/projects/me` — проекты текущего пользователя, включая непубличные статусы;
 - `POST /api/projects` — создание проекта;
-- `POST /api/projects/:id/submit` — отправка проекта на модерацию;
-- `POST /api/projects/:id/files` — загрузка нескольких файлов;
+- `PATCH /api/projects/:id` — редактирование `DRAFT`/`REJECTED` проекта владельцем или админом;
+- `POST /api/projects/:id/submit` — отправка `DRAFT`/`REJECTED` проекта на модерацию;
+- `POST /api/projects/:id/files` — загрузка нескольких файлов только в `DRAFT`/`REJECTED`;
+- `DELETE /api/projects/:id/files/:fileId` — удаление файла проекта только в `DRAFT`/`REJECTED`;
 - `GET /api/projects/:id/files/:fileId/preview` — защищённый preview image/video и `.glb/.gltf` файлов;
 - `POST /api/projects/:id/like` — лайк;
 - `DELETE /api/projects/:id/like` — убрать лайк;
@@ -567,6 +573,38 @@ flowchart TD
 - raw `/uploads` не является публичным route: preview всегда проходит через backend access check;
 - `.glb/.gltf` идут по тому же защищённому preview route, что и картинки/видео, поэтому приватная модель не раскрывается отдельной публичной ссылкой.
 
+### Edit and Resubmit Flow
+
+```mermaid
+flowchart TD
+  rejected["Project is DRAFT or REJECTED"]
+  editor["Frontend #project/:id/edit"]
+  patch["PATCH /api/projects/:id<br/>title, description, categories"]
+  addFiles["POST /api/projects/:id/files<br/>optional new files"]
+  deleteFiles["DELETE /api/projects/:id/files/:fileId<br/>optional cleanup"]
+  submit["POST /api/projects/:id/submit<br/>DRAFT/REJECTED -> PENDING"]
+  frozen["PENDING / PUBLISHED<br/>editing blocked with 409"]
+  queue["Admin moderation queue"]
+
+  rejected --> editor
+  editor --> patch
+  editor --> addFiles
+  editor --> deleteFiles
+  patch --> submit
+  addFiles --> submit
+  deleteFiles --> submit
+  submit --> queue
+  frozen -->|"PATCH / upload / delete"| frozen
+```
+
+Почему именно так:
+
+- автор может исправить отклонённую работу без создания нового проекта;
+- старая `moderationNote` очищается при повторной отправке, потому что начинается новая проверка;
+- `PENDING` заморожен, чтобы модератор смотрел стабильную версию;
+- `PUBLISHED` заморожен, чтобы публичный каталог не менялся без отдельного workflow редактирования опубликованных работ;
+- если upload запрещён после проверки статуса, backend удаляет только что сохранённые Multer-файлы, чтобы локальное `uploads/` не засорялось мусором от неуспешных запросов.
+
 ### Project Visibility and File Preview Flow
 
 ```mermaid
@@ -816,6 +854,8 @@ SQLite backend был проверен вручную:
 - `/api/admin/projects?status=PENDING` вернул очередь модерации;
 - `/api/admin/projects?status=PUBLISHED` вернул опубликованные проекты;
 - admin moderation smoke test создал временный проект и перевёл его `PENDING -> REJECTED` с сохранением `moderationNote`;
+- edit/resubmit smoke test создал проект, загрузил файл, получил `REJECTED`, обновил title/description/categories, добавил новый файл, удалил старый файл и вернул проект в `PENDING`;
+- попытки редактировать, добавлять и удалять файлы у `PENDING` проекта вернули `409`;
 - `/api/projects/me` smoke test создал временного пользователя, создал проект, отправил его на модерацию и получил его в кабинете как `PENDING`.
 
 ## Следующие шаги
@@ -825,6 +865,6 @@ SQLite backend был проверен вручную:
 1. Сделать frontend-friendly DTO для категорий, сгруппированных под текущую UI-структуру фильтров.
 2. Подключить frontend-фильтры к `/api/categories`.
 3. Добавить upload smoke test именно с `.glb` fixture, чтобы проверять не только код, но и реальную загрузку модели.
-4. Добавить редактирование своих `DRAFT`/`REJECTED` проектов, чтобы автор мог исправить работу после причины отклонения.
-5. Добавить email-уведомление автору при публикации/отклонении проекта.
+4. Добавить email-уведомление автору при публикации/отклонении проекта.
+5. Подключить более аккуратный UI выбора/редактирования категорий из backend, а не фиксированные кнопки формы.
 6. Подготовить production-like PostgreSQL migration path и инструкцию переноса на другой ПК.
