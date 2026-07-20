@@ -246,7 +246,12 @@ projectsRouter.post("/:id/submit", requireAuth, async (request, response, next) 
 
     const project = await prisma.project.update({
       where: { id: request.params.id },
-      data: { status: "PENDING" }
+      data: {
+        status: "PENDING",
+        // A resubmitted project should start a fresh moderation pass. Keeping
+        // the previous rejection reason would confuse both the author and admin.
+        moderationNote: null
+      }
     });
 
     const submittedProject = await prisma.project.findUniqueOrThrow({

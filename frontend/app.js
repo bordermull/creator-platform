@@ -353,6 +353,18 @@ function resolveProjectAssetUrl(url) {
   return `${apiBaseUrl}/uploads/${encodeURIComponent(url)}`;
 }
 
+function escapeHtml(value) {
+  // This frontend still renders large chunks with innerHTML for simplicity.
+  // Any text that can come from users or admins should pass through this helper
+  // before interpolation so names/descriptions/notes cannot become markup.
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function mapApiProject(project) {
   const categories = Array.isArray(project.categories) ? project.categories : [];
   // SECTION categories are useful for filtering, but cards look cleaner when
@@ -384,6 +396,7 @@ function mapApiProject(project) {
     views: formatCompactNumber(project.views),
     description: project.description || "",
     status: project.status,
+    moderationNote: project.moderationNote || "",
     files: Array.isArray(project.files)
       ? project.files.map((file) => ({ ...file, url: resolveProjectAssetUrl(file.url) }))
       : []
@@ -545,13 +558,19 @@ async function loadMyProjects() {
   return (payload.projects || []).map(mapApiProject);
 }
 
-async function moderateProject(projectId, action) {
+async function moderateProject(projectId, action, reason = "") {
   // The UI exposes only publish/reject. Mapping the action to a known endpoint
   // here avoids building arbitrary admin URLs from button data.
   const endpoint = action === "publish" ? "publish" : "reject";
-  const payload = await apiJson(`/api/admin/projects/${encodeURIComponent(projectId)}/${endpoint}`, {
+  const options = {
     method: "POST"
-  });
+  };
+
+  if (action === "reject") {
+    options.body = JSON.stringify({ reason });
+  }
+
+  const payload = await apiJson(`/api/admin/projects/${encodeURIComponent(projectId)}/${endpoint}`, options);
   return mapApiProject(payload.project);
 }
 
@@ -1036,20 +1055,25 @@ function projectStatusLabel(status) {
 
 function accountProjectCard(project) {
   const tags = project.category.length
-    ? project.category.map((tag) => `<span>${tag}</span>`).join("")
+    ? project.category.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")
     : "<span>Без тегов</span>";
+  const safeTitle = escapeHtml(project.title);
+  const rejection = project.status === "REJECTED" && project.moderationNote
+    ? `<p class="moderation-note account-moderation-note">Причина: ${escapeHtml(project.moderationNote)}</p>`
+    : "";
 
   return `
     <a class="project-card account-project-card" href="#project/${project.id}">
       <div class="project-art">
-        <img src="${project.image}" alt="${project.title}" loading="lazy" />
+        <img src="${project.image}" alt="${safeTitle}" loading="lazy" />
         <span class="status-pill account-status-pill">${projectStatusLabel(project.status)}</span>
       </div>
       <div class="card-body">
         <img class="mini-avatar" src="${project.avatar}" alt="" />
         <div class="card-content">
-          <h3>${project.title}</h3>
-          <p>${project.author}</p>
+          <h3>${safeTitle}</h3>
+          <p>${escapeHtml(project.author)}</p>
+          ${rejection}
           <div class="tag-row">${tags}</div>
           <div class="meta-row">
             <span>${project.likes} лайков</span>
@@ -1240,13 +1264,21 @@ function renderAdminModeration(status = "PENDING") {
         const projectId = button.dataset.projectId;
         const action = button.dataset.adminAction;
         const row = button.closest("[data-admin-project]");
+        const reason = row?.querySelector("[data-moderation-note]")?.value.trim() || "";
+
+        if (action === "reject" && reason.length < 3) {
+          statusCopy.textContent = "Для отклонения укажите причину минимум в 3 символа.";
+          row?.querySelector("[data-moderation-note]")?.focus();
+          return;
+        }
+
         // Disable the row visually while the request is in-flight. This prevents
         // accidental double-publish/double-reject clicks.
         row?.classList.add("is-busy");
         statusCopy.textContent = action === "publish" ? "Публикуем проект..." : "Отклоняем проект...";
 
         try {
-          const updatedProject = await moderateProject(projectId, action);
+          const updatedProject = await moderateProject(projectId, action, reason);
           upsertProject(updatedProject);
           await refreshAdminList(status);
           statusCopy.textContent = action === "publish"
@@ -1298,24 +1330,43 @@ function adminProjectCard(project) {
   // Status labels live near the admin card because they are presentation copy.
   // The backend continues to speak stable enum values.
   const tags = project.category.length
-    ? project.category.map((tag) => `<span>${tag}</span>`).join("")
+    ? project.category.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")
     : "<span>Без тегов</span>";
   const canModerate = project.status === "PENDING" || project.status === "DRAFT";
+  const safeTitle = escapeHtml(project.title);
+  const moderationNote = project.status === "REJECTED" && project.moderationNote
+    ? `
+      <div class="moderation-note">
+        <strong>Причина отклонения:</strong>
+        <p>${escapeHtml(project.moderationNote)}</p>
+      </div>
+    `
+    : "";
+  const moderationField = canModerate
+    ? `
+      <label class="moderation-note-field">
+        <span>Причина отклонения</span>
+        <textarea data-moderation-note maxlength="1000" placeholder="Например: добавьте превью, уточните описание, загрузите корректный файл проекта.">${escapeHtml(project.moderationNote)}</textarea>
+      </label>
+    `
+    : "";
 
   return `
     <article class="admin-project" data-admin-project>
       <a class="admin-project-art" href="#project/${project.id}">
-        <img src="${project.image}" alt="${project.title}" loading="lazy" />
+        <img src="${project.image}" alt="${safeTitle}" loading="lazy" />
       </a>
       <div class="admin-project-body">
         <div>
           <span class="status-pill">${projectStatusLabel(project.status)}</span>
-          <h2>${project.title}</h2>
-          <p>${project.description}</p>
+          <h2>${safeTitle}</h2>
+          <p>${escapeHtml(project.description)}</p>
         </div>
         <div class="tag-row">${tags}</div>
+        ${moderationNote}
+        ${moderationField}
         <div class="admin-project-meta">
-          <span>Автор: ${project.author}</span>
+          <span>Автор: ${escapeHtml(project.author)}</span>
           <span>${project.likes} лайков</span>
           <span>${project.views} просмотров</span>
         </div>
@@ -1359,15 +1410,25 @@ function renderProjectContent(target, project) {
   const gallery = previewFiles.length
     ? previewFiles.map(projectPreview).join("")
     : projectCoverFallback(project);
+  const rejection = project.status === "REJECTED" && project.moderationNote
+    ? `
+      <div class="moderation-note project-moderation-note">
+        <strong>Причина отклонения:</strong>
+        <p>${escapeHtml(project.moderationNote)}</p>
+      </div>
+    `
+    : "";
+  const safeTitle = escapeHtml(project.title);
 
   target.innerHTML = `
     <aside class="project-sidebar">
       <img class="mini-avatar" src="${project.avatar}" alt="" />
-      <h1>${project.title}</h1>
-      <p>${project.author}</p>
+      <h1>${safeTitle}</h1>
+      <p>${escapeHtml(project.author)}</p>
       ${project.status && project.status !== "PUBLISHED" ? `<span class="status-pill">${projectStatusLabel(project.status)}</span>` : ""}
       <button class="primary-button like-button" type="button" data-like-button>Нравится: ${project.likes}</button>
-      <div class="project-description">${project.description}</div>
+      ${rejection}
+      <div class="project-description">${escapeHtml(project.description)}</div>
     </aside>
     <div class="project-gallery">
       ${gallery}
@@ -1414,7 +1475,7 @@ function projectCoverFallback(project) {
   // contain only archives/documents/non-preview model files, so the detail page
   // needs a deliberate empty state instead of a broken image URL.
   if (project.image) {
-    return `<img src="${project.image}" alt="${project.title}" />`;
+    return `<img src="${project.image}" alt="${escapeHtml(project.title)}" />`;
   }
 
   return `
@@ -1426,12 +1487,14 @@ function projectCoverFallback(project) {
 }
 
 function projectPreview(file) {
+  const safeName = escapeHtml(file.name);
+
   if (isModelViewerProjectFile(file)) {
     return `
       <figure class="project-preview project-preview-model">
         <model-viewer
           src="${file.url}"
-          alt="${file.name}"
+          alt="${safeName}"
           camera-controls
           auto-rotate
           interaction-prompt="auto"
@@ -1443,7 +1506,7 @@ function projectPreview(file) {
             <p>3D-preview не загрузился. Файл сохранён, но браузеру не удалось открыть модель.</p>
           </div>
         </model-viewer>
-        <figcaption>${file.name} · ${formatFileSize(file.sizeBytes)} · можно вращать мышью</figcaption>
+        <figcaption>${safeName} · ${formatFileSize(file.sizeBytes)} · можно вращать мышью</figcaption>
       </figure>
     `;
   }
@@ -1452,15 +1515,15 @@ function projectPreview(file) {
     return `
       <figure class="project-preview">
         <video src="${file.url}" controls preload="metadata"></video>
-        <figcaption>${file.name} · ${formatFileSize(file.sizeBytes)}</figcaption>
+        <figcaption>${safeName} · ${formatFileSize(file.sizeBytes)}</figcaption>
       </figure>
     `;
   }
 
   return `
     <figure class="project-preview">
-      <img src="${file.url}" alt="${file.name}" />
-      <figcaption>${file.name} · ${formatFileSize(file.sizeBytes)}</figcaption>
+      <img src="${file.url}" alt="${safeName}" />
+      <figcaption>${safeName} · ${formatFileSize(file.sizeBytes)}</figcaption>
     </figure>
   `;
 }
@@ -1494,7 +1557,7 @@ function projectFileCard(file) {
   return `
     <article class="project-file-card">
       <span class="status-pill">${fileKindLabel(file.kind)}</span>
-      <h3>${file.name}</h3>
+      <h3>${escapeHtml(file.name)}</h3>
       <p>${formatFileSize(file.sizeBytes)} · предпросмотр для этого формата будет добавлен позже</p>
     </article>
   `;

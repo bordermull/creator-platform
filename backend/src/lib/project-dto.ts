@@ -4,6 +4,7 @@ type ProjectRecord = {
   description: string;
   status: string;
   coverFileId: string | null;
+  moderationNote: string | null;
   likesCount: number;
   viewsCount: number;
   publishedAt: Date | null;
@@ -56,6 +57,7 @@ export function toProjectDto(project: ProjectRecord) {
     title: project.title,
     description: project.description,
     status: project.status,
+    moderationNote: project.moderationNote,
     author: {
       id: project.owner.id,
       name: project.owner.displayName,

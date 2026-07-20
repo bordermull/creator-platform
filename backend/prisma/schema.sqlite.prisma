@@ -38,22 +38,23 @@ model PasswordResetToken {
 }
 
 model Project {
-  id          String            @id @default(cuid())
-  ownerId     String
-  title       String
-  description String
-  coverFileId String?
-  status      String            @default("DRAFT")
-  likesCount  Int               @default(0)
-  viewsCount  Int               @default(0)
-  publishedAt DateTime?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  owner       User              @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  files       ProjectFile[]
-  categories  ProjectCategory[]
-  likes       Like[]
-  views       ProjectView[]
+  id             String            @id @default(cuid())
+  ownerId        String
+  title          String
+  description    String
+  coverFileId    String?
+  status         String            @default("DRAFT")
+  moderationNote String?
+  likesCount     Int               @default(0)
+  viewsCount     Int               @default(0)
+  publishedAt    DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  owner          User              @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  files          ProjectFile[]
+  categories     ProjectCategory[]
+  likes          Like[]
+  views          ProjectView[]
 
   @@index([ownerId])
   @@index([status, publishedAt])

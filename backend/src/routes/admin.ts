@@ -8,6 +8,13 @@ export const adminRouter = Router();
 
 adminRouter.use(requireAdmin);
 
+const rejectProjectSchema = z.object({
+  // The moderation note is intentionally required for rejection. Without it,
+  // authors see only “rejected” and have no useful next step. The max length
+  // keeps this field practical for UI cards and future email notifications.
+  reason: z.string().trim().min(3).max(1000)
+});
+
 adminRouter.get("/projects", async (request, response, next) => {
   try {
     // The first moderation screen defaults to PENDING because that is the daily
@@ -39,6 +46,7 @@ adminRouter.post("/projects/:id/publish", async (request, response, next) => {
       where: { id: request.params.id },
       data: {
         status: "PUBLISHED",
+        moderationNote: null,
         publishedAt: new Date()
       },
       include: adminProjectInclude
@@ -52,11 +60,18 @@ adminRouter.post("/projects/:id/publish", async (request, response, next) => {
 
 adminRouter.post("/projects/:id/reject", async (request, response, next) => {
   try {
-    // Rejection is deliberately minimal in this MVP. A future moderation note
-    // column can be added here without changing the basic route shape.
+    const body = rejectProjectSchema.parse(request.body);
+
+    // Rejection stores a human-readable note for the author. It is not public:
+    // rejected projects are viewable only by their owner and admins through the
+    // same project visibility checks used by detail and file preview routes.
     const project = await prisma.project.update({
       where: { id: request.params.id },
-      data: { status: "REJECTED" },
+      data: {
+        status: "REJECTED",
+        moderationNote: body.reason,
+        publishedAt: null
+      },
       include: adminProjectInclude
     });
 

@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS "Project" (
   "description" TEXT NOT NULL,
   "coverFileId" TEXT,
   "status" TEXT NOT NULL DEFAULT 'DRAFT',
+  "moderationNote" TEXT,
   "likesCount" INTEGER NOT NULL DEFAULT 0,
   "viewsCount" INTEGER NOT NULL DEFAULT 0,
   "publishedAt" DATETIME,
@@ -123,6 +124,10 @@ if (!projectColumnNames.has("likesCount")) {
 
 if (!projectColumnNames.has("viewsCount")) {
   database.exec(`ALTER TABLE "Project" ADD COLUMN "viewsCount" INTEGER NOT NULL DEFAULT 0`);
+}
+
+if (!projectColumnNames.has("moderationNote")) {
+  database.exec(`ALTER TABLE "Project" ADD COLUMN "moderationNote" TEXT`);
 }
 
 database.close();

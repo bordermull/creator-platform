@@ -185,7 +185,7 @@ admin@creatur.local
 password123
 ```
 
-На странице модерации можно смотреть проекты по статусам `PENDING`, `PUBLISHED`, `REJECTED` и `ALL`, открывать detail page проекта, публиковать или отклонять работы. Это первый рабочий moderation MVP: он намеренно простой, но уже использует реальные admin endpoints и cookie-based права.
+На странице модерации можно смотреть проекты по статусам `PENDING`, `PUBLISHED`, `REJECTED` и `ALL`, открывать detail page проекта, публиковать или отклонять работы. При отклонении админ обязан указать причину: она сохраняется в `Project.moderationNote` и показывается автору в личном кабинете и на detail page отклонённого проекта. Это уже не просто кнопка “нет”, а первый нормальный feedback loop для автора.
 
 Поиск и фильтры тоже уходят в API query params. Например:
 
@@ -242,7 +242,7 @@ Backend — это Express + TypeScript API с Prisma в качестве сло
 - `GET /api/admin/projects?status=PENDING` — список проектов для модерации;
 - `GET /api/admin/projects?status=ALL` — все проекты для админа;
 - `POST /api/admin/projects/:id/publish` — публикация проекта;
-- `POST /api/admin/projects/:id/reject` — отклонение проекта;
+- `POST /api/admin/projects/:id/reject` — отклонение проекта с обязательной причиной `{ "reason": "..." }`;
 - `GET /api/admin/users` — список пользователей для будущей админки пользователей.
 
 `/api/projects` отдаёт DTO, а не сырые Prisma records. Это важно: frontend получает стабильную форму данных, а backend не раскрывает лишние поля вроде `passwordHash` или внутренних relation-объектов.
@@ -257,6 +257,7 @@ Backend — это Express + TypeScript API с Prisma в качестве сло
   "title": "Чужой открытый проект",
   "description": "Экспериментальная работа с прозрачными материалами, свечением и плавным движением.",
   "status": "PUBLISHED",
+  "moderationNote": null,
   "author": {
     "id": "user-id",
     "name": "Олег Фрост",
@@ -607,21 +608,25 @@ flowchart TD
   dto["Project DTO<br/>same safe shape as catalog"]
   decision{"Moderator decision"}
   publish["POST /api/admin/projects/:id/publish"]
-  reject["POST /api/admin/projects/:id/reject"]
+  note["Textarea<br/>required rejection reason"]
+  reject["POST /api/admin/projects/:id/reject<br/>reason saved as moderationNote"]
   catalog["Public catalog<br/>GET /api/projects"]
-  hidden["Hidden from catalog"]
+  hidden["Hidden from catalog<br/>reason visible to owner/admin"]
 
   login --> page
   page --> list
   list --> dto
   dto --> decision
   decision -->|"ready"| publish
-  decision -->|"not ready"| reject
+  decision -->|"not ready"| note
+  note --> reject
   publish --> catalog
   reject --> hidden
 ```
 
 Admin endpoints тоже возвращают DTO, а не сырые Prisma-записи. Даже в админском UI не нужно протаскивать `passwordHash`, внутренние relation-объекты или BigInt-поля в браузер: безопаснее держать один стабильный контракт для карточек проекта.
+
+Когда проект публикуется, `moderationNote` очищается. Когда проект повторно отправляется на модерацию через `POST /api/projects/:id/submit`, старая причина отклонения тоже очищается. Это сделано специально: новая попытка должна проходить свежую проверку, а старый комментарий не должен выглядеть как актуальная ошибка.
 
 ### My Projects Flow
 
@@ -632,6 +637,7 @@ flowchart TD
   mine["GET /api/projects/me"]
   dto["Project DTO list<br/>all owned statuses"]
   cards["Account project cards<br/>with status pill"]
+  rejectedReason["Rejected project card<br/>shows moderationNote"]
   upload["Upload new project"]
   pending["Project appears as PENDING"]
   admin["Admin publishes or rejects"]
@@ -640,6 +646,7 @@ flowchart TD
   account --> mine
   mine --> dto
   dto --> cards
+  dto --> rejectedReason
   upload --> pending
   pending --> account
   pending --> admin
@@ -708,6 +715,7 @@ erDiagram
     string title
     string description
     string status
+    string moderationNote
   }
 
   ProjectFile {
@@ -807,7 +815,7 @@ SQLite backend был проверен вручную:
 - admin login под `admin@creatur.local` вернул роль `ADMIN`;
 - `/api/admin/projects?status=PENDING` вернул очередь модерации;
 - `/api/admin/projects?status=PUBLISHED` вернул опубликованные проекты;
-- admin moderation smoke test создал временный проект и перевёл его `PENDING -> REJECTED`;
+- admin moderation smoke test создал временный проект и перевёл его `PENDING -> REJECTED` с сохранением `moderationNote`;
 - `/api/projects/me` smoke test создал временного пользователя, создал проект, отправил его на модерацию и получил его в кабинете как `PENDING`.
 
 ## Следующие шаги
@@ -817,6 +825,6 @@ SQLite backend был проверен вручную:
 1. Сделать frontend-friendly DTO для категорий, сгруппированных под текущую UI-структуру фильтров.
 2. Подключить frontend-фильтры к `/api/categories`.
 3. Добавить upload smoke test именно с `.glb` fixture, чтобы проверять не только код, но и реальную загрузку модели.
-4. Добавить textarea “причина отклонения” и хранение moderation note.
-5. Добавить редактирование своих `DRAFT`/`REJECTED` проектов.
+4. Добавить редактирование своих `DRAFT`/`REJECTED` проектов, чтобы автор мог исправить работу после причины отклонения.
+5. Добавить email-уведомление автору при публикации/отклонении проекта.
 6. Подготовить production-like PostgreSQL migration path и инструкцию переноса на другой ПК.
