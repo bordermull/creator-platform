@@ -167,11 +167,14 @@ Upload UI теперь создаёт настоящий проект:
 
 - image preview для изображений;
 - video preview через `<video controls>`;
-- карточки для 3D/model, archive, document и other файлов без скачивания;
+- 3D-preview для `.glb` и `.gltf` через `<model-viewer>`;
+- карточки для остальных 3D/model, archive, document и other файлов без скачивания;
 - размер файла;
 - бейдж статуса, если проект ещё не опубликован и открыт владельцем/админом.
 
 Download-кнопок пока нет намеренно: на этом этапе нужен предпросмотр, а не публичная раздача исходников.
+
+3D-preview ограничен форматами `.glb` и `.gltf`. Это осознанное MVP-решение: эти форматы хорошо поддерживаются браузерным viewer-компонентом без серверной конвертации. Более “рабочие” авторские форматы вроде `.fbx`, `.obj`, `.blend` и `.stl` пока показываются как файлы проекта, но не открываются inline, потому что для качественного просмотра им обычно нужен отдельный pipeline: конвертация, обработка материалов, текстур, масштаба и предпросмотр ошибок.
 
 Личный кабинет теперь тоже подключён к backend. После входа страница `#account` вызывает `GET /api/projects/me` и показывает проекты текущего пользователя со всеми статусами: `DRAFT`, `PENDING`, `PUBLISHED`, `REJECTED`. Это отличается от публичного каталога: каталог намеренно показывает только опубликованные проекты, а кабинет нужен именно для контроля своего workflow.
 
@@ -233,7 +236,7 @@ Backend — это Express + TypeScript API с Prisma в качестве сло
 - `POST /api/projects` — создание проекта;
 - `POST /api/projects/:id/submit` — отправка проекта на модерацию;
 - `POST /api/projects/:id/files` — загрузка нескольких файлов;
-- `GET /api/projects/:id/files/:fileId/preview` — защищённый preview image/video файлов;
+- `GET /api/projects/:id/files/:fileId/preview` — защищённый preview image/video и `.glb/.gltf` файлов;
 - `POST /api/projects/:id/like` — лайк;
 - `DELETE /api/projects/:id/like` — убрать лайк;
 - `GET /api/admin/projects?status=PENDING` — список проектов для модерации;
@@ -243,6 +246,8 @@ Backend — это Express + TypeScript API с Prisma в качестве сло
 - `GET /api/admin/users` — список пользователей для будущей админки пользователей.
 
 `/api/projects` отдаёт DTO, а не сырые Prisma records. Это важно: frontend получает стабильную форму данных, а backend не раскрывает лишние поля вроде `passwordHash` или внутренних relation-объектов.
+
+Для 3D-preview frontend использует `<model-viewer>` из `@google/model-viewer`, подключённый pinned CDN-скриптом в `frontend/index.html`. Сейчас frontend остаётся статическим без bundler-сборки, поэтому такой вариант проще и честнее: проект можно открыть локальным static server’ом, а когда появится полноценная frontend-сборка, dependency можно перенести в `package.json`.
 
 Пример project DTO:
 
@@ -538,7 +543,7 @@ flowchart TD
   cover["First image becomes coverFileId<br/>if cover is empty"]
   submit["POST /api/projects/:id/submit<br/>DRAFT -> PENDING"]
   detail["Open #project/:id<br/>owner/admin can view private status"]
-  preview["GET /api/projects/:id/files/:fileId/preview<br/>protected image/video preview"]
+  preview["GET /api/projects/:id/files/:fileId/preview<br/>protected image/video/model preview"]
   moderation["Future admin moderation<br/>PENDING -> PUBLISHED or REJECTED"]
 
   pick --> create
@@ -558,7 +563,8 @@ flowchart TD
 - upload идёт через `FormData`, потому что браузер сам выставляет multipart boundary;
 - первый image-файл становится обложкой, чтобы detail page мог сразу показать результат;
 - публичный каталог всё равно показывает только `PUBLISHED`, поэтому новые работы после загрузки не попадают наружу без модерации;
-- raw `/uploads` не является публичным route: preview всегда проходит через backend access check.
+- raw `/uploads` не является публичным route: preview всегда проходит через backend access check;
+- `.glb/.gltf` идут по тому же защищённому preview route, что и картинки/видео, поэтому приватная модель не раскрывается отдельной публичной ссылкой.
 
 ### Project Visibility and File Preview Flow
 
@@ -572,8 +578,8 @@ flowchart TD
   owner["Owner or ADMIN<br/>visible"]
   hidden["404<br/>do not reveal existence"]
   preview["GET /api/projects/:id/files/:fileId/preview"]
-  imageVideo{"IMAGE or VIDEO?"}
-  inline["Inline preview"]
+  previewable{"IMAGE / VIDEO / GLB / GLTF?"}
+  inline["Inline preview<br/>img, video or model-viewer"]
   noPreview["415<br/>listed, but no download/preview yet"]
 
   request --> project
@@ -584,9 +590,9 @@ flowchart TD
   session -->|anonymous/other user| hidden
   published --> preview
   owner --> preview
-  preview --> imageVideo
-  imageVideo -->|yes| inline
-  imageVideo -->|no| noPreview
+  preview --> previewable
+  previewable -->|yes| inline
+  previewable -->|no| noPreview
 ```
 
 Такой поток нужен, чтобы пользовательские upload-файлы не становились публичными просто потому, что лежат на диске. Публичность определяется статусом проекта и ролью пользователя, а не URL файла.
@@ -797,6 +803,7 @@ SQLite backend был проверен вручную:
 - приватный `PENDING` проект вернул `404` для анонимного пользователя;
 - тот же `PENDING` проект вернул `200` владельцу;
 - image preview приватного проекта вернул `200` владельцу и `404` анонимному пользователю;
+- `.glb/.gltf` подключены к тому же защищённому preview route и к browser viewer на detail page;
 - admin login под `admin@creatur.local` вернул роль `ADMIN`;
 - `/api/admin/projects?status=PENDING` вернул очередь модерации;
 - `/api/admin/projects?status=PUBLISHED` вернул опубликованные проекты;
@@ -809,7 +816,7 @@ SQLite backend был проверен вручную:
 
 1. Сделать frontend-friendly DTO для категорий, сгруппированных под текущую UI-структуру фильтров.
 2. Подключить frontend-фильтры к `/api/categories`.
-3. Добавить viewer для `.glb/.gltf` как первый поддерживаемый 3D-preview формат.
+3. Добавить upload smoke test именно с `.glb` fixture, чтобы проверять не только код, но и реальную загрузку модели.
 4. Добавить textarea “причина отклонения” и хранение moderation note.
 5. Добавить редактирование своих `DRAFT`/`REJECTED` проектов.
 6. Подготовить production-like PostgreSQL migration path и инструкцию переноса на другой ПК.

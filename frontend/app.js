@@ -1358,7 +1358,7 @@ function renderProjectContent(target, project) {
   const nonPreviewFiles = files.filter((file) => !isPreviewableProjectFile(file));
   const gallery = previewFiles.length
     ? previewFiles.map(projectPreview).join("")
-    : `<img src="${project.image}" alt="${project.title}" />`;
+    : projectCoverFallback(project);
 
   target.innerHTML = `
     <aside class="project-sidebar">
@@ -1409,7 +1409,45 @@ function renderProjectUnavailable(target) {
   `;
 }
 
+function projectCoverFallback(project) {
+  // Old seeded projects usually have a ready cover image. New real projects may
+  // contain only archives/documents/non-preview model files, so the detail page
+  // needs a deliberate empty state instead of a broken image URL.
+  if (project.image) {
+    return `<img src="${project.image}" alt="${project.title}" />`;
+  }
+
+  return `
+    <div class="project-media-placeholder">
+      <h2>Предпросмотр пока недоступен</h2>
+      <p>Файлы проекта сохранены, но среди них нет изображения, видео или .glb/.gltf модели для inline-просмотра.</p>
+    </div>
+  `;
+}
+
 function projectPreview(file) {
+  if (isModelViewerProjectFile(file)) {
+    return `
+      <figure class="project-preview project-preview-model">
+        <model-viewer
+          src="${file.url}"
+          alt="${file.name}"
+          camera-controls
+          auto-rotate
+          interaction-prompt="auto"
+          shadow-intensity="0.8"
+          exposure="0.9"
+          crossorigin="use-credentials"
+        >
+          <div class="model-viewer-fallback">
+            <p>3D-preview не загрузился. Файл сохранён, но браузеру не удалось открыть модель.</p>
+          </div>
+        </model-viewer>
+        <figcaption>${file.name} · ${formatFileSize(file.sizeBytes)} · можно вращать мышью</figcaption>
+      </figure>
+    `;
+  }
+
   if (isVideoProjectFile(file)) {
     return `
       <figure class="project-preview">
@@ -1430,9 +1468,19 @@ function projectPreview(file) {
 function isPreviewableProjectFile(file) {
   const name = (file.name || "").toLowerCase();
   return ["IMAGE", "VIDEO"].includes(file.kind)
+    || isModelViewerProjectFile(file)
     || (file.mimeType || "").startsWith("image/")
     || (file.mimeType || "").startsWith("video/")
     || [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".avif", ".mp4", ".webm", ".mov", ".m4v"].some((extension) => name.endsWith(extension));
+}
+
+function isModelViewerProjectFile(file) {
+  const name = (file.name || "").toLowerCase();
+
+  // We intentionally start with GLB/GLTF only. They are web-friendly formats
+  // that <model-viewer> can open without a server-side conversion pipeline.
+  // Other model formats remain visible as file cards, but not as fake previews.
+  return file.kind === "MODEL" && [".glb", ".gltf"].some((extension) => name.endsWith(extension));
 }
 
 function isVideoProjectFile(file) {

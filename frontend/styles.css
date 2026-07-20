@@ -1393,7 +1393,8 @@ input[type="checkbox"] {
 }
 
 .project-gallery img,
-.project-gallery video {
+.project-gallery video,
+.project-gallery model-viewer {
   width: 100%;
   max-height: 760px;
   object-fit: cover;
@@ -1402,9 +1403,59 @@ input[type="checkbox"] {
   background: #000;
 }
 
+.project-gallery model-viewer {
+  height: min(72vh, 720px);
+  min-height: 420px;
+  object-fit: contain;
+  --poster-color: #000;
+}
+
+.project-preview-model {
+  position: relative;
+}
+
+.model-viewer-fallback {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  padding: 24px;
+  color: #cfcfcf;
+  text-align: center;
+}
+
+.model-viewer-fallback p {
+  max-width: 420px;
+  margin: 0;
+}
+
 .project-preview figcaption {
   color: #bdbdbd;
   font-size: 13px;
+}
+
+.project-media-placeholder {
+  display: grid;
+  min-height: 360px;
+  place-content: center;
+  gap: 10px;
+  padding: 28px;
+  border: 8px solid #000;
+  border-radius: var(--card-radius);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(182, 255, 51, 0.14), transparent 28%),
+    linear-gradient(145deg, #111, #050505);
+  text-align: center;
+}
+
+.project-media-placeholder h2,
+.project-media-placeholder p {
+  margin: 0;
+}
+
+.project-media-placeholder p {
+  max-width: 520px;
+  color: #cfcfcf;
+  line-height: 1.5;
 }
 
 .project-files {

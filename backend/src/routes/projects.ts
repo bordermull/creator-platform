@@ -198,8 +198,9 @@ projectsRouter.get("/:id/files/:fileId/preview", async (request, response, next)
       return;
     }
 
-    // The MVP deliberately supports browser preview only. Model/archive/document
-    // files are listed in the UI but are not downloadable from this route yet.
+    // The MVP deliberately supports browser preview only. GLB/GLTF are allowed
+    // because model-viewer can render them directly in the browser; heavier 3D
+    // source formats stay listed as files until we add conversion/processing.
     if (!isPreviewableFile(file)) {
       response.status(415).json({ error: "Preview is not available for this file type" });
       return;
@@ -394,6 +395,7 @@ function isPreviewableFile(file: { kind: string; mimeType: string; originalName:
 
   return file.kind === FileKind.IMAGE
     || file.kind === FileKind.VIDEO
+    || isBrowserPreviewableModel(extension)
     || file.mimeType.toLowerCase().startsWith("image/")
     || file.mimeType.toLowerCase().startsWith("video/")
     || [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".avif", ".mp4", ".webm", ".mov", ".m4v"].includes(extension);
@@ -416,10 +418,20 @@ function contentTypeForPreview(file: { mimeType: string; originalName: string })
     ".mp4": "video/mp4",
     ".webm": "video/webm",
     ".mov": "video/quicktime",
-    ".m4v": "video/mp4"
+    ".m4v": "video/mp4",
+    ".glb": "model/gltf-binary",
+    ".gltf": "model/gltf+json"
   };
 
   return contentTypes[extension] || file.mimeType;
+}
+
+function isBrowserPreviewableModel(extension: string) {
+  // GLB is the most convenient single-file 3D preview format. GLTF is also
+  // allowed, but production upload validation should later handle its external
+  // texture/bin dependencies explicitly. FBX/OBJ/BLEND/STL remain metadata-only
+  // until we add conversion or a broader viewer pipeline.
+  return [".glb", ".gltf"].includes(extension);
 }
 
 const projectInclude = {
