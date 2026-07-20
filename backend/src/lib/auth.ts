@@ -35,21 +35,17 @@ export function clearSessionCookie(response: Response) {
 }
 
 export function requireAuth(request: Request, response: Response, next: NextFunction) {
-  const token = request.cookies?.[authCookieName];
+  const user = readSessionUser(request);
 
-  if (!token) {
+  if (!user) {
     response.status(401).json({ error: "Unauthorized" });
     return;
   }
 
-  try {
-    // Downstream routes cast Request to AuthedRequest after this middleware.
-    // Keeping the session payload tiny makes this cast predictable.
-    (request as AuthedRequest).user = jwt.verify(token, config.jwtSecret) as SessionUser;
-    next();
-  } catch {
-    response.status(401).json({ error: "Unauthorized" });
-  }
+  // Downstream routes cast Request to AuthedRequest after this middleware.
+  // Keeping the session payload tiny makes this cast predictable.
+  (request as AuthedRequest).user = user;
+  next();
 }
 
 export function requireAdmin(request: Request, response: Response, next: NextFunction) {
@@ -63,4 +59,19 @@ export function requireAdmin(request: Request, response: Response, next: NextFun
 
     next();
   });
+}
+
+export function readSessionUser(request: Request) {
+  const token = request.cookies?.[authCookieName];
+
+  if (!token) return null;
+
+  try {
+    // Some routes, like project detail and file previews, are public only for
+    // published projects but private for drafts/moderation states. They need to
+    // read an optional session without forcing every visitor to be logged in.
+    return jwt.verify(token, config.jwtSecret) as SessionUser;
+  } catch {
+    return null;
+  }
 }

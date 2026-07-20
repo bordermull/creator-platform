@@ -346,7 +346,7 @@ function resolveProjectAssetUrl(url) {
     return url;
   }
 
-  if (url.startsWith("/uploads")) {
+  if (url.startsWith("/api") || url.startsWith("/uploads")) {
     return `${apiBaseUrl}${url}`;
   }
 
@@ -593,7 +593,16 @@ async function loadProjectFromApi(id) {
   try {
     // Detail pages use a dedicated endpoint because an item may not be present
     // in the public catalog cache, especially after upload while it is PENDING.
-    const response = await fetch(`${apiBaseUrl}/api/projects/${encodeURIComponent(id)}`);
+    const response = await fetch(`${apiBaseUrl}/api/projects/${encodeURIComponent(id)}`, {
+      // Private project detail pages rely on the httpOnly session cookie. Since
+      // the static frontend and API run on different ports, fetch must opt in to
+      // sending credentials for owner/admin access checks.
+      credentials: "include"
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
 
     if (!response.ok) {
       throw new Error(`Project API returned ${response.status}`);
@@ -611,7 +620,7 @@ async function loadProjectFromApi(id) {
   } catch (error) {
     // Detail pages keep the old local project data when backend is unavailable.
     console.warn("Using fallback project detail:", error);
-    return projects.find((project) => project.id === id) || fallbackProjects[0];
+    return projects.find((project) => project.id === id) || null;
   }
 }
 
@@ -1323,32 +1332,46 @@ function adminProjectCard(project) {
 function renderProject(id) {
   cloneTemplate("project-template");
   const page = app.querySelector("[data-project-page]");
-  const project = projects.find((item) => item.id === id) || fallbackProjects[0];
+  const project = projects.find((item) => item.id === id);
 
   // Render immediately from current data, then refresh with the dedicated
   // detail endpoint. This keeps navigation instant while still using backend truth.
-  renderProjectContent(page, project);
+  if (project) {
+    renderProjectContent(page, project);
+  } else {
+    page.innerHTML = `<div class="project-empty"><h1>Загружаем проект</h1><p>Проверяем доступ и получаем данные из backend.</p></div>`;
+  }
 
   loadProjectFromApi(id).then((apiProject) => {
     if (window.location.hash !== `#project/${id}` || !document.body.contains(page)) return;
+    if (!apiProject) {
+      renderProjectUnavailable(page);
+      return;
+    }
     renderProjectContent(page, apiProject);
   });
 }
 
 function renderProjectContent(target, project) {
-  const altImage = project.id === "water-orb" ? `${assets.projectForeign}image-02.png` : `${assets.projectOwn}image-02.png`;
+  const files = Array.isArray(project.files) ? project.files : [];
+  const previewFiles = files.filter(isPreviewableProjectFile);
+  const nonPreviewFiles = files.filter((file) => !isPreviewableProjectFile(file));
+  const gallery = previewFiles.length
+    ? previewFiles.map(projectPreview).join("")
+    : `<img src="${project.image}" alt="${project.title}" />`;
 
   target.innerHTML = `
     <aside class="project-sidebar">
       <img class="mini-avatar" src="${project.avatar}" alt="" />
       <h1>${project.title}</h1>
       <p>${project.author}</p>
+      ${project.status && project.status !== "PUBLISHED" ? `<span class="status-pill">${projectStatusLabel(project.status)}</span>` : ""}
       <button class="primary-button like-button" type="button" data-like-button>Нравится: ${project.likes}</button>
       <div class="project-description">${project.description}</div>
     </aside>
     <div class="project-gallery">
-      <img src="${project.image}" alt="${project.title}" />
-      <img src="${altImage}" alt="" />
+      ${gallery}
+      ${nonPreviewFiles.length ? `<div class="project-files">${nonPreviewFiles.map(projectFileCard).join("")}</div>` : ""}
     </div>
   `;
 
@@ -1365,7 +1388,7 @@ function renderProjectContent(target, project) {
     try {
       await apiJson(`/api/projects/${encodeURIComponent(project.id)}/like`, { method: "POST" });
       const refreshedProject = await loadProjectFromApi(project.id);
-      if (document.body.contains(target)) {
+      if (refreshedProject && document.body.contains(target)) {
         renderProjectContent(target, refreshedProject);
       }
     } catch (error) {
@@ -1374,6 +1397,81 @@ function renderProjectContent(target, project) {
       button.textContent = `Нравится: ${project.likes}`;
     }
   });
+}
+
+function renderProjectUnavailable(target) {
+  target.innerHTML = `
+    <div class="project-empty">
+      <h1>Проект недоступен</h1>
+      <p>Он ещё не опубликован, был отклонён или доступен только владельцу и администратору.</p>
+      <a class="primary-button" href="#home">Вернуться в каталог</a>
+    </div>
+  `;
+}
+
+function projectPreview(file) {
+  if (isVideoProjectFile(file)) {
+    return `
+      <figure class="project-preview">
+        <video src="${file.url}" controls preload="metadata"></video>
+        <figcaption>${file.name} · ${formatFileSize(file.sizeBytes)}</figcaption>
+      </figure>
+    `;
+  }
+
+  return `
+    <figure class="project-preview">
+      <img src="${file.url}" alt="${file.name}" />
+      <figcaption>${file.name} · ${formatFileSize(file.sizeBytes)}</figcaption>
+    </figure>
+  `;
+}
+
+function isPreviewableProjectFile(file) {
+  const name = (file.name || "").toLowerCase();
+  return ["IMAGE", "VIDEO"].includes(file.kind)
+    || (file.mimeType || "").startsWith("image/")
+    || (file.mimeType || "").startsWith("video/")
+    || [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".avif", ".mp4", ".webm", ".mov", ".m4v"].some((extension) => name.endsWith(extension));
+}
+
+function isVideoProjectFile(file) {
+  const name = (file.name || "").toLowerCase();
+  return file.kind === "VIDEO"
+    || (file.mimeType || "").startsWith("video/")
+    || [".mp4", ".webm", ".mov", ".m4v"].some((extension) => name.endsWith(extension));
+}
+
+function projectFileCard(file) {
+  return `
+    <article class="project-file-card">
+      <span class="status-pill">${fileKindLabel(file.kind)}</span>
+      <h3>${file.name}</h3>
+      <p>${formatFileSize(file.sizeBytes)} · предпросмотр для этого формата будет добавлен позже</p>
+    </article>
+  `;
+}
+
+function fileKindLabel(kind) {
+  const labels = {
+    MODEL: "3D-файл",
+    ARCHIVE: "Архив",
+    DOCUMENT: "Документ",
+    OTHER: "Файл",
+    IMAGE: "Изображение",
+    VIDEO: "Видео"
+  };
+
+  return labels[kind] || "Файл";
+}
+
+function formatFileSize(sizeBytes) {
+  const bytes = Number(sizeBytes) || 0;
+
+  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${bytes} B`;
 }
 
 document.querySelector("[data-menu-button]").addEventListener("click", () => {

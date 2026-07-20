@@ -1386,13 +1386,61 @@ input[type="checkbox"] {
   gap: 16px;
 }
 
-.project-gallery img {
+.project-preview {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.project-gallery img,
+.project-gallery video {
   width: 100%;
   max-height: 760px;
   object-fit: cover;
   border: 8px solid #000;
   border-radius: var(--card-radius);
   background: #000;
+}
+
+.project-preview figcaption {
+  color: #bdbdbd;
+  font-size: 13px;
+}
+
+.project-files {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.project-file-card,
+.project-empty {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #333;
+  border-radius: 20px;
+  background: #000;
+}
+
+.project-file-card h3,
+.project-file-card p,
+.project-empty h1,
+.project-empty p {
+  margin: 0;
+}
+
+.project-file-card p,
+.project-empty p {
+  color: #cfcfcf;
+  line-height: 1.5;
+}
+
+.project-empty {
+  grid-column: 1 / -1;
+  min-height: 320px;
+  place-content: center;
+  text-align: center;
 }
 
 .footer {

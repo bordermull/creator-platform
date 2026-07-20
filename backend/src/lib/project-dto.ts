@@ -16,9 +16,11 @@ type ProjectRecord = {
   };
   files: Array<{
     id: string;
+    projectId: string;
     storageKey: string;
     originalName: string;
     mimeType: string;
+    sizeBytes: bigint | number;
     kind: string;
     sortOrder: number;
   }>;
@@ -41,7 +43,6 @@ type ProjectRecord = {
 export function toProjectDto(project: ProjectRecord) {
   const imageFile = project.files.find((file) => file.id === project.coverFileId)
     || project.files.find((file) => file.kind === "IMAGE")
-    || project.files[0]
     || null;
   const categories = project.categories.map(({ category }) => ({
     id: category.id,
@@ -60,12 +61,13 @@ export function toProjectDto(project: ProjectRecord) {
       name: project.owner.displayName,
       avatar: project.owner.avatarFileId
     },
-    image: imageFile?.storageKey || null,
+    image: imageFile ? publicFileUrl(imageFile) : null,
     files: project.files.map((file) => ({
       id: file.id,
-      url: file.storageKey,
+      url: publicFileUrl(file),
       name: file.originalName,
       mimeType: file.mimeType,
+      sizeBytes: Number(file.sizeBytes),
       kind: file.kind,
       sortOrder: file.sortOrder
     })),
@@ -78,4 +80,15 @@ export function toProjectDto(project: ProjectRecord) {
     createdAt: project.createdAt,
     updatedAt: project.updatedAt
   };
+}
+
+function publicFileUrl(file: ProjectRecord["files"][number]) {
+  // Seed data points at static Figma-exported frontend assets. Those are not
+  // sensitive uploads, so keeping their /assets path preserves the old visual
+  // demo without routing them through backend storage.
+  if (file.storageKey.startsWith("/assets")) return file.storageKey;
+
+  // Real user uploads are never exposed as raw storage keys. The preview route
+  // checks project visibility and allows only previewable file kinds.
+  return `/api/projects/${encodeURIComponent(file.projectId)}/files/${encodeURIComponent(file.id)}/preview`;
 }

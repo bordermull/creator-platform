@@ -5,7 +5,7 @@ import { Router } from "express";
 import multer from "multer";
 import { z } from "zod";
 import { config } from "../config.js";
-import { requireAuth, type AuthedRequest } from "../lib/auth.js";
+import { readSessionUser, requireAuth, type AuthedRequest, type SessionUser } from "../lib/auth.js";
 import { prisma } from "../lib/prisma.js";
 import { toProjectDto } from "../lib/project-dto.js";
 
@@ -159,15 +159,69 @@ projectsRouter.get("/me", requireAuth, async (request, response, next) => {
 
 projectsRouter.get("/:id", async (request, response, next) => {
   try {
-    // Detail is public for now so newly uploaded PENDING projects can be opened
-    // by direct link after creation. The public catalog still hides non-published
-    // projects, so discoverability remains moderated.
-    const project = await prisma.project.findUniqueOrThrow({
-      where: { id: request.params.id },
-      include: projectInclude
-    });
+    const project = await findViewableProject(request.params.id, readSessionUser(request));
+
+    if (!project) {
+      // Return 404 instead of 403 for private project states. This avoids
+      // confirming that a draft or rejected project id exists to strangers.
+      response.status(404).json({ error: "Project not found" });
+      return;
+    }
 
     response.json({ project: toProjectDto(project) });
+  } catch (error) {
+    next(error);
+  }
+});
+
+projectsRouter.get("/:id/files/:fileId/preview", async (request, response, next) => {
+  try {
+    const sessionUser = readSessionUser(request);
+    const file = await prisma.projectFile.findFirst({
+      where: {
+        id: request.params.fileId,
+        projectId: request.params.id
+      },
+      include: {
+        project: {
+          select: {
+            id: true,
+            ownerId: true,
+            status: true
+          }
+        }
+      }
+    });
+
+    if (!file || !canViewProject(file.project, sessionUser)) {
+      response.status(404).json({ error: "File not found" });
+      return;
+    }
+
+    // The MVP deliberately supports browser preview only. Model/archive/document
+    // files are listed in the UI but are not downloadable from this route yet.
+    if (!isPreviewableFile(file)) {
+      response.status(415).json({ error: "Preview is not available for this file type" });
+      return;
+    }
+
+    if (file.storageKey.startsWith("/assets")) {
+      response.redirect(`${config.frontendOrigin}${file.storageKey}`);
+      return;
+    }
+
+    const uploadRoot = path.resolve(config.uploadDir);
+    const filePath = path.resolve(uploadRoot, file.storageKey);
+
+    if (!filePath.startsWith(`${uploadRoot}${path.sep}`)) {
+      response.status(400).json({ error: "Invalid file path" });
+      return;
+    }
+
+    response.setHeader("Content-Type", contentTypeForPreview(file));
+    response.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.originalName)}"`);
+    response.setHeader("Cache-Control", "private, no-store");
+    response.sendFile(filePath);
   } catch (error) {
     next(error);
   }
@@ -326,13 +380,46 @@ function inferFileKind(file: Express.Multer.File) {
 
   // MIME type is best for browser uploads, but model/archive formats often
   // arrive as generic octet-stream, so extension checks are still necessary.
-  if (mime.startsWith("image/")) return FileKind.IMAGE;
-  if (mime.startsWith("video/")) return FileKind.VIDEO;
+  if (mime.startsWith("image/") || [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".avif"].includes(extension)) return FileKind.IMAGE;
+  if (mime.startsWith("video/") || [".mp4", ".webm", ".mov", ".m4v"].includes(extension)) return FileKind.VIDEO;
   if ([".fbx", ".obj", ".blend", ".glb", ".gltf", ".stl", ".usd", ".usdz"].includes(extension)) return FileKind.MODEL;
   if ([".zip", ".rar", ".7z"].includes(extension)) return FileKind.ARCHIVE;
   if ([".pdf", ".txt", ".md", ".doc", ".docx"].includes(extension)) return FileKind.DOCUMENT;
 
   return FileKind.OTHER;
+}
+
+function isPreviewableFile(file: { kind: string; mimeType: string; originalName: string }) {
+  const extension = path.extname(file.originalName).toLowerCase();
+
+  return file.kind === FileKind.IMAGE
+    || file.kind === FileKind.VIDEO
+    || file.mimeType.toLowerCase().startsWith("image/")
+    || file.mimeType.toLowerCase().startsWith("video/")
+    || [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".avif", ".mp4", ".webm", ".mov", ".m4v"].includes(extension);
+}
+
+function contentTypeForPreview(file: { mimeType: string; originalName: string }) {
+  const mime = file.mimeType.toLowerCase();
+  const extension = path.extname(file.originalName).toLowerCase();
+
+  if (mime.startsWith("image/") || mime.startsWith("video/")) return file.mimeType;
+
+  const contentTypes: Record<string, string> = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".avif": "image/avif",
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".mov": "video/quicktime",
+    ".m4v": "video/mp4"
+  };
+
+  return contentTypes[extension] || file.mimeType;
 }
 
 const projectInclude = {
@@ -347,6 +434,22 @@ const projectInclude = {
   categories: { include: { category: true } },
   _count: { select: { likes: true, views: true } }
 } as const;
+
+function canViewProject(project: { ownerId: string; status: string }, sessionUser: SessionUser | null) {
+  if (project.status === "PUBLISHED") return true;
+  if (!sessionUser) return false;
+  return sessionUser.role === "ADMIN" || project.ownerId === sessionUser.id;
+}
+
+async function findViewableProject(projectId: string, sessionUser: SessionUser | null) {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: projectInclude
+  });
+
+  if (!project || !canViewProject(project, sessionUser)) return null;
+  return project;
+}
 
 function normalizeCategoryFilter(value: string) {
   const normalized = value.trim().toLowerCase().replace(/\s+/g, "-");
