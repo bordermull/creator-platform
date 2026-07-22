@@ -198,7 +198,9 @@ GET /api/projects?search=куб&category=3d
 GET /api/projects?category=blender&category=fantasy
 ```
 
-Backend сохраняет текущую UI-семантику фильтров: внутри одной группы работает OR, между разными группами работает AND. Например, `Blender + Fantasy` означает “проект должен быть Blender и Fantasy”, а несколько выбранных тематик внутри одной группы означают “любая из выбранных тематик”.
+Категории теперь тоже приходят из backend через `GET /api/categories`. Frontend больше не держит отдельный список фильтров и отдельный список тегов формы: каталог, фильтры, upload и edit используют одну и ту же backend-модель категорий. Если backend выключен, frontend сохраняет локальный fallback, чтобы статический прототип всё ещё можно было показать.
+
+Backend сохраняет текущую UI-семантику фильтров: внутри одной группы работает OR, между разными группами работает AND. Например, `Blender + Fantasy` означает “проект должен быть Blender и Fantasy”, а несколько выбранных тематик внутри одной группы означают “любая из выбранных тематик”. В API отправляются стабильные slug’и категорий (`3d`, `blender`, `fantasy`), а не человекочитаемые подписи кнопок.
 
 Такой fallback выбран намеренно: frontend можно всё ещё открыть и показать как статический прототип, но при запущенном backend он уже начинает жить на настоящих данных.
 
@@ -229,9 +231,9 @@ Backend — это Express + TypeScript API с Prisma в качестве сло
 - `GET /api/auth/me` — проверка текущей cookie-сессии;
 - `POST /api/auth/password-reset/request` — запрос письма для сброса пароля;
 - `POST /api/auth/password-reset/confirm` — установка нового пароля по token;
-- `GET /api/categories` — фиксированные категории и фильтры;
+- `GET /api/categories` — активные категории для фильтров каталога и upload/edit формы;
 - `GET /api/projects` — список опубликованных проектов;
-- `GET /api/projects?category=3D` — фильтр проектов по категории;
+- `GET /api/projects?category=3d` — фильтр проектов по категории;
 - `GET /api/projects?search=куб` — поиск по названию, описанию и автору;
 - `GET /api/projects?search=куб&category=3d` — поиск и фильтр одновременно;
 - `GET /api/projects?category=blender&category=fantasy` — grouped filter semantics: OR внутри группы, AND между группами;
@@ -254,6 +256,15 @@ Backend — это Express + TypeScript API с Prisma в качестве сло
 `/api/projects` отдаёт DTO, а не сырые Prisma records. Это важно: frontend получает стабильную форму данных, а backend не раскрывает лишние поля вроде `passwordHash` или внутренних relation-объектов.
 
 Для 3D-preview frontend использует `<model-viewer>` из `@google/model-viewer`, подключённый pinned CDN-скриптом в `frontend/index.html`. Сейчас frontend остаётся статическим без bundler-сборки, поэтому такой вариант проще и честнее: проект можно открыть локальным static server’ом, а когда появится полноценная frontend-сборка, dependency можно перенести в `package.json`.
+
+Категории хранятся в базе плоским списком `Category`, но имеют поле `group`. Frontend группирует их только для отображения:
+
+- `SECTION` → “Раздел”;
+- `SOFTWARE` → “Инструменты”;
+- `CONTENT` → “Тип проекта”;
+- `THEME` → “Тематика”.
+
+Такой подход проще для базы и понятнее для защиты проекта: связь `ProjectCategory` остаётся универсальной, а UI может показывать те же данные в виде фильтров или тегов формы.
 
 Пример project DTO:
 
@@ -573,6 +584,36 @@ flowchart TD
 - raw `/uploads` не является публичным route: preview всегда проходит через backend access check;
 - `.glb/.gltf` идут по тому же защищённому preview route, что и картинки/видео, поэтому приватная модель не раскрывается отдельной публичной ссылкой.
 
+### Category and Filter Flow
+
+```mermaid
+flowchart TD
+  seed["Seed categories<br/>SECTION, SOFTWARE, CONTENT, THEME"]
+  db["Category table<br/>slug, name, group, sortOrder"]
+  api["GET /api/categories"]
+  groups["Frontend groups categories<br/>for filters and upload/edit tags"]
+  filters["Catalog filters<br/>repeated ?category=slug"]
+  form["Upload/Edit form<br/>categorySlugs[]"]
+  projects["ProjectCategory links"]
+  catalog["GET /api/projects<br/>OR inside group, AND between groups"]
+
+  seed --> db
+  db --> api
+  api --> groups
+  groups --> filters
+  groups --> form
+  form --> projects
+  filters --> catalog
+  projects --> catalog
+```
+
+Почему именно так:
+
+- frontend не хранит “свой” список категорий отдельно от базы;
+- формы создания и редактирования используют те же slug’и, что и фильтры каталога;
+- fallback-категории остаются в коде только для показа статического прототипа без backend;
+- группировка нужна UI, а не базе: база хранит простую универсальную связь project ↔ category.
+
 ### Edit and Resubmit Flow
 
 ```mermaid
@@ -830,9 +871,9 @@ git diff --check
 SQLite backend был проверен вручную:
 
 - `/health` вернул `200`;
-- `/api/categories` вернул `200`;
+- `/api/categories` вернул `200` и 34 активные категории в группах `SECTION`, `SOFTWARE`, `CONTENT`, `THEME`;
 - `/api/projects` вернул 8 опубликованных проектов;
-- `/api/projects?category=3D` вернул 4 проекта;
+- `/api/projects?category=3d` вернул опубликованные проекты из раздела 3D;
 - `/api/projects?search=куб` вернул 1 проект;
 - `/api/projects?category=blender&category=fantasy` вернул 1 проект;
 - `/api/projects?search=куб&category=3d` вернул 1 проект;
@@ -856,15 +897,15 @@ SQLite backend был проверен вручную:
 - admin moderation smoke test создал временный проект и перевёл его `PENDING -> REJECTED` с сохранением `moderationNote`;
 - edit/resubmit smoke test создал проект, загрузил файл, получил `REJECTED`, обновил title/description/categories, добавил новый файл, удалил старый файл и вернул проект в `PENDING`;
 - попытки редактировать, добавлять и удалять файлы у `PENDING` проекта вернули `409`;
+- category smoke test проверил `GET /api/categories`, фильтр `category=blender`, создание проекта с `categorySlugs` и последующее редактирование категорий проекта;
 - `/api/projects/me` smoke test создал временного пользователя, создал проект, отправил его на модерацию и получил его в кабинете как `PENDING`.
 
 ## Следующие шаги
 
 Рекомендуемый порядок:
 
-1. Сделать frontend-friendly DTO для категорий, сгруппированных под текущую UI-структуру фильтров.
-2. Подключить frontend-фильтры к `/api/categories`.
-3. Добавить upload smoke test именно с `.glb` fixture, чтобы проверять не только код, но и реальную загрузку модели.
-4. Добавить email-уведомление автору при публикации/отклонении проекта.
-5. Подключить более аккуратный UI выбора/редактирования категорий из backend, а не фиксированные кнопки формы.
-6. Подготовить production-like PostgreSQL migration path и инструкцию переноса на другой ПК.
+1. Доработать README под формат защиты: “как запустить с нуля”, “демонстрационные сценарии”, “ограничения и развитие”.
+2. Добавить upload smoke test именно с `.glb` fixture, чтобы проверять не только код, но и реальную загрузку модели.
+3. Добавить email-уведомление автору при публикации/отклонении проекта, если это нужно как дополнительный плюс к учебному проекту.
+4. Немного отполировать UI ошибок и пустых состояний перед финальной демонстрацией.
+5. Подготовить понятную инструкцию переноса на другой ПК из GitHub с PostgreSQL и SQLite fallback.

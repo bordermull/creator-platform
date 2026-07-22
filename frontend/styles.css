@@ -1414,14 +1414,33 @@ input[type="checkbox"] {
 }
 
 .tag-cloud {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   align-content: start;
-  gap: 10px;
+  gap: 14px;
   min-height: 197px;
   margin: 0;
   padding: 16px;
   background: #fff;
+}
+
+.upload-tag-group {
+  display: grid;
+  gap: 8px;
+}
+
+.upload-tag-group p {
+  margin: 0;
+  color: #555;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.upload-tag-group div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .tag-cloud button {

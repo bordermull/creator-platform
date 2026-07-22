@@ -11,14 +11,14 @@ const assets = {
 
 const apiBaseUrl = "http://127.0.0.1:3000";
 
-const filterGroups = [
+const fallbackFilterGroups = [
   {
     id: "section",
     title: "Раздел",
-    defaultSelected: ["ai", "3D", "design"],
+    defaultSelected: ["ai", "3d", "design"],
     options: [
       { value: "ai", label: "ИИ-креаторы" },
-      { value: "3D", label: "3D-креаторы" },
+      { value: "3d", label: "3D-креаторы" },
       { value: "design", label: "Дизайнеры" },
       { value: "code", label: "Программисты" }
     ]
@@ -73,8 +73,62 @@ const filterGroups = [
   }
 ];
 
+let filterGroups = fallbackFilterGroups;
+
 function defaultFilterState() {
   return Object.fromEntries(filterGroups.map((group) => [group.id, group.defaultSelected || []]));
+}
+
+const categoryGroupPresentation = {
+  SECTION: { id: "section", title: "Раздел", defaultSelected: ["ai", "3d", "design"], order: 10 },
+  SOFTWARE: { id: "software", title: "Инструменты", defaultSelected: [], order: 20 },
+  CONTENT: { id: "content", title: "Тип проекта", defaultSelected: [], order: 30 },
+  THEME: { id: "themes", title: "Тематика", defaultSelected: [], order: 40 }
+};
+
+function categoryGroupsFromApi(categories) {
+  // Backend stores categories as a flat table because it is simpler to query and
+  // attach to projects. The frontend groups them for presentation only: the
+  // value sent back to API remains the stable category slug.
+  const grouped = categories.reduce((groups, category) => {
+    const presentation = categoryGroupPresentation[category.group];
+    if (!presentation) return groups;
+
+    groups[presentation.id] ||= {
+      id: presentation.id,
+      title: presentation.title,
+      defaultSelected: presentation.defaultSelected,
+      order: presentation.order,
+      options: []
+    };
+    groups[presentation.id].options.push({
+      value: category.slug,
+      label: category.name,
+      group: category.group,
+      sortOrder: category.sortOrder || 0
+    });
+    return groups;
+  }, {});
+
+  return Object.values(grouped)
+    .sort((left, right) => left.order - right.order)
+    .map((group) => ({
+      id: group.id,
+      title: group.title,
+      defaultSelected: group.defaultSelected,
+      options: group.options.sort((left, right) => left.sortOrder - right.sortOrder)
+    }));
+}
+
+function normalizeFilterStateForGroups(filters = state.filters) {
+  // When categories come from backend, available groups/options can differ from
+  // fallback. We preserve still-valid selections and drop stale values so the UI
+  // never sends phantom filters that no checkbox can display.
+  return Object.fromEntries(filterGroups.map((group) => {
+    const allowedValues = new Set(group.options.map((option) => option.value));
+    const selectedValues = (filters[group.id] || []).filter((value) => allowedValues.has(value));
+    return [group.id, selectedValues.length ? selectedValues : group.defaultSelected || []];
+  }));
 }
 
 const fallbackProjects = [
@@ -516,13 +570,57 @@ async function syncAuthFromApi() {
   }
 }
 
+async function syncCategoriesFromApi() {
+  try {
+    const payload = await apiJson("/api/categories");
+    const apiGroups = categoryGroupsFromApi(payload.categories || []);
+
+    if (!apiGroups.length) return;
+
+    filterGroups = apiGroups;
+    state.filters = normalizeFilterStateForGroups();
+  } catch (error) {
+    // Categories have a local fallback so the static prototype remains usable
+    // without backend. The warning is useful during development, but the user
+    // should still see filters and upload tags.
+    console.warn("Categories API unavailable, using fallback categories:", error);
+  }
+}
+
 function selectedUploadCategorySlugs(root) {
-  // Upload tags are still the visual buttons from the static MVP. We translate
-  // their human labels into backend category slugs instead of exposing category
-  // database ids to the frontend.
+  // Upload/edit tags are rendered from the same category groups as filters.
+  // Their data-tag values are backend slugs, so project creation and editing
+  // share one category vocabulary with the catalog.
   return [...root.querySelectorAll("[data-tag].selected")]
     .map((button) => normalizeCategoryParam(button.dataset.tag || ""))
     .filter(Boolean);
+}
+
+function renderUploadCategoryControls(root, selectedSlugs = []) {
+  const target = root.querySelector("[data-upload-tags]");
+  if (!target) return;
+
+  const selected = new Set(selectedSlugs.map(normalizeCategoryParam));
+  target.innerHTML = filterGroups.map((group) => `
+    <div class="upload-tag-group">
+      <p>${escapeHtml(group.title)}</p>
+      <div>
+        ${group.options.map((option) => `
+          <button
+            type="button"
+            data-tag="${escapeHtml(option.value)}"
+            class="${selected.has(option.value) ? "selected" : ""}"
+          >${escapeHtml(option.label)}</button>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  target.querySelectorAll("[data-tag]").forEach((button) => {
+    button.addEventListener("click", () => {
+      button.classList.toggle("selected");
+    });
+  });
 }
 
 async function createProjectFromUpload({ title, description, categorySlugs, files }) {
@@ -772,11 +870,11 @@ function renderFilterControls(target) {
   target.innerHTML = filterGroups
     .map((group) => {
       const options = group.options
-        .map((option) => `<label><input type="checkbox" value="${option.value}" /> ${option.label}</label>`)
+        .map((option) => `<label><input type="checkbox" value="${escapeHtml(option.value)}" /> ${escapeHtml(option.label)}</label>`)
         .join("");
       return `
         <div class="filter-group" data-filter-group="${group.id}">
-          <p class="filter-title">${group.title}</p>
+          <p class="filter-title">${escapeHtml(group.title)}</p>
           ${options}
         </div>
       `;
@@ -1171,13 +1269,7 @@ function renderUpload(filled = false, editProjectId = null) {
     ? "Короткое описание проекта, задачи, инструментов и художественного решения. Работа построена вокруг портального объекта, плотного света и игрового настроения."
     : "";
 
-  app.querySelectorAll("[data-tag]").forEach((button) => {
-    const selected = filled && ["3D", "Blender", "Game art", "Sci-fi"].includes(button.dataset.tag);
-    button.classList.toggle("selected", selected);
-    button.addEventListener("click", () => {
-      button.classList.toggle("selected");
-    });
-  });
+  renderUploadCategoryControls(screen, filled ? ["3d", "blender", "game", "sci-fi"] : []);
 
   const renderExistingFiles = () => {
     if (!isEditing) return;
@@ -1360,10 +1452,7 @@ function renderUpload(filled = false, editProjectId = null) {
         ? `Причина отклонения: ${project.moderationNote}`
         : "Внесите изменения и отправьте проект на модерацию.";
 
-      app.querySelectorAll("[data-tag]").forEach((button) => {
-        const slug = normalizeCategoryParam(button.dataset.tag || "");
-        button.classList.toggle("selected", (project.categorySlugs || []).includes(slug));
-      });
+      renderUploadCategoryControls(screen, project.categorySlugs || []);
 
       renderExistingFiles();
     });
@@ -1760,4 +1849,4 @@ window.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("hashchange", route);
-syncAuthFromApi().finally(route);
+Promise.allSettled([syncAuthFromApi(), syncCategoriesFromApi()]).finally(route);
