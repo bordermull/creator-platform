@@ -7,12 +7,11 @@
     <link rel="icon" href="./assets/figma/favicon.png" type="image/png" />
     <link rel="stylesheet" href="./styles.css" />
     <!--
-      <model-viewer> is a lightweight web component for browser-native GLB/GLTF
-      preview. We keep it as a pinned CDN dependency for now so the static
-      frontend still runs without a bundler; later, when the frontend moves to a
-      real build pipeline, this can become an npm dependency.
+      GLB/GLTF-просмотрщик поставляется вместе с репозиторием (Apache-2.0).
+      После установки backend обычные локальные модели открываются без CDN.
+      Для сжатых моделей с особыми декодерами см. ограничения в README.
     -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
+    <script type="module" src="./vendor/model-viewer/model-viewer.min.js"></script>
   </head>
   <body>
     <div class="site-shell">

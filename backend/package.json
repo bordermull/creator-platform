@@ -18,7 +18,9 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:push:postgres": "prisma db push --schema prisma/schema.prisma",
     "prisma:push:sqlite": "node --no-warnings prisma/init-sqlite.mjs && prisma generate --schema prisma/schema.sqlite.prisma",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "node prisma/seed-demo.mjs",
+    "demo:export": "node prisma/export-demo.mjs",
+    "demo:verify": "node prisma/verify-demo.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.18.0",
@@ -46,6 +48,6 @@
     "typescript": "^5.5.4"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "node prisma/seed-demo.mjs"
   }
 }

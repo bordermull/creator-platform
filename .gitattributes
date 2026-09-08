@@ -1,0 +1,8 @@
+# Демо-файлы проверяются по SHA-256. Git не должен менять переводы строк
+# даже в SVG: байты после clone должны совпадать со снимком на любой ОС.
+backend/demo/files/** -text
+frontend/vendor/model-viewer/model-viewer.min.js -text
+frontend/vendor/model-viewer/LICENSE -text
+
+# Windows-ярлыки сохраняем с родными переводами строк независимо от ОС автора.
+*.cmd text eol=crlf

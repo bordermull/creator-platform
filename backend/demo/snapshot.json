@@ -1,0 +1,1497 @@
+{
+  "version": 1,
+  "exportedAt": "2026-09-08T17:04:06.689Z",
+  "demoPassword": "password123",
+  "data": {
+    "users": [
+      {
+        "id": "cmrro3zhp0000ro659njv47mq",
+        "email": "dev+20260719144336@creatur.local",
+        "displayName": "Dev User",
+        "bio": null,
+        "avatarFileId": null,
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-19T10:43:36.686Z",
+        "updatedAt": "2026-09-08T16:36:47.516Z"
+      },
+      {
+        "id": "cmrsfbxd8000014dpa8dx2sds",
+        "email": "codex-upload-test-1784503536@creatur.local",
+        "displayName": "Codex Upload Test",
+        "bio": null,
+        "avatarFileId": null,
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-19T23:25:36.812Z",
+        "updatedAt": "2026-07-19T23:25:36.812Z"
+      },
+      {
+        "id": "cmrsfl8xz00006pd0unwmhlo8",
+        "email": "codex-admin-flow-1784503971@creatur.local",
+        "displayName": "Codex Admin Flow",
+        "bio": null,
+        "avatarFileId": null,
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-19T23:32:51.720Z",
+        "updatedAt": "2026-07-19T23:32:51.720Z"
+      },
+      {
+        "id": "cmrsfyyd5000013420nqu6m68",
+        "email": "codex-my-projects-1784504610@creatur.local",
+        "displayName": "Codex My Projects",
+        "bio": null,
+        "avatarFileId": null,
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-19T23:43:31.194Z",
+        "updatedAt": "2026-07-19T23:43:31.194Z"
+      },
+      {
+        "id": "cmrsxln2j000ygm1kc2fe8aw7",
+        "email": "admin@creatur.local",
+        "displayName": "Виктор Жестянщиков",
+        "bio": "3D-художник, концепт-дизайнер, автор игровых объектов.",
+        "avatarFileId": "/assets/extracted/home-after-registration/image-01.png",
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "ADMIN",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T07:57:03.116Z",
+        "updatedAt": "2026-07-20T07:57:03.116Z"
+      },
+      {
+        "id": "cmrsxln2m000zgm1khrcnq9ul",
+        "email": "klara@creatur.local",
+        "displayName": "Клара Морт",
+        "bio": "Hard-surface artist with a focus on playable props.",
+        "avatarFileId": "/assets/extracted/home-before-registration/image-04.png",
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T07:57:03.119Z",
+        "updatedAt": "2026-07-20T07:57:03.119Z"
+      },
+      {
+        "id": "cmrsxln2n0010gm1k5efqdtqp",
+        "email": "artem@creatur.local",
+        "displayName": "Артем Нокс",
+        "bio": "Digital illustrator exploring fantasy rituals and character art.",
+        "avatarFileId": "/assets/extracted/home-before-registration/image-07.png",
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T07:57:03.119Z",
+        "updatedAt": "2026-07-20T07:57:03.119Z"
+      },
+      {
+        "id": "cmrsxln2o0011gm1kl1y82bwg",
+        "email": "maria@creatur.local",
+        "displayName": "Мария Рэй",
+        "bio": "Game artist building sci-fi objects and realtime scenes.",
+        "avatarFileId": "/assets/extracted/home-before-registration/image-08.png",
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T07:57:03.120Z",
+        "updatedAt": "2026-07-20T07:57:03.120Z"
+      },
+      {
+        "id": "cmrsxln2o0012gm1kv35yb67p",
+        "email": "denis@creatur.local",
+        "displayName": "Денис Варг",
+        "bio": "Environment and interface-driven visual storyteller.",
+        "avatarFileId": "/assets/extracted/home-after-registration/image-01.png",
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T07:57:03.121Z",
+        "updatedAt": "2026-07-20T07:57:03.121Z"
+      },
+      {
+        "id": "cmrsxln2p0013gm1kee6brkx9",
+        "email": "lina@creatur.local",
+        "displayName": "Лина Соул",
+        "bio": "Fantasy prop artist working with readable silhouettes.",
+        "avatarFileId": "/assets/extracted/home-before-registration/image-04.png",
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T07:57:03.121Z",
+        "updatedAt": "2026-07-20T07:57:03.121Z"
+      },
+      {
+        "id": "cmrsxln2q0014gm1k7usk7j7b",
+        "email": "oleg@creatur.local",
+        "displayName": "Олег Фрост",
+        "bio": "Motion designer and experimental material artist.",
+        "avatarFileId": "/assets/extracted/project-public-foreign/image-05.png",
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T07:57:03.122Z",
+        "updatedAt": "2026-07-20T07:57:03.122Z"
+      },
+      {
+        "id": "cmrt0cvkl0000kes4jlmtwyzs",
+        "email": "codex-private-preview-1784538852@creatur.local",
+        "displayName": "Codex Private Preview",
+        "bio": null,
+        "avatarFileId": null,
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T09:14:13.076Z",
+        "updatedAt": "2026-07-20T09:14:13.076Z"
+      },
+      {
+        "id": "cmrt0dl4g0005kes4w1t0igk3",
+        "email": "codex-image-preview-1784538885@creatur.local",
+        "displayName": "Codex Image Preview",
+        "bio": null,
+        "avatarFileId": null,
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T09:14:46.192Z",
+        "updatedAt": "2026-07-20T09:14:46.192Z"
+      },
+      {
+        "id": "cmrt0myg90000g7iwfnhk9jmf",
+        "email": "codex-image-preview-ok-1784539322@creatur.local",
+        "displayName": "Codex Image Preview Ok",
+        "bio": null,
+        "avatarFileId": null,
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T09:22:03.369Z",
+        "updatedAt": "2026-07-20T09:22:03.369Z"
+      },
+      {
+        "id": "cmrt1c6k00000x1sy5rrr0qg2",
+        "email": "glb-smoke-1784540499776@example.local",
+        "displayName": "GLB Smoke",
+        "bio": null,
+        "avatarFileId": null,
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T09:41:40.273Z",
+        "updatedAt": "2026-07-20T09:41:40.273Z"
+      },
+      {
+        "id": "cmrt2ejuq0000gox36mlx6hs5",
+        "email": "note-smoke-1784542290076@example.local",
+        "displayName": "Moderation Note Smoke",
+        "bio": null,
+        "avatarFileId": null,
+        "coverUrl": null,
+        "specialty": null,
+        "contact": null,
+        "location": null,
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2026-07-20T10:11:30.434Z",
+        "updatedAt": "2026-07-20T10:11:30.434Z"
+      },
+      {
+        "id": "figma-jayce",
+        "email": "jayce@creatur.local",
+        "displayName": "Джейс Талис",
+        "bio": "Viktor, humanity isn't weakness. It's why I stand against you.",
+        "avatarFileId": "/assets/figma/jayce-avatar.png",
+        "coverUrl": "/assets/figma/jayce-project.png",
+        "specialty": "3D дизайнер",
+        "contact": "Пишите Виктору",
+        "location": "Piltover",
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2020-03-10T00:00:00.000Z",
+        "updatedAt": "2026-09-08T16:33:28.242Z"
+      },
+      {
+        "id": "figma-jinx",
+        "email": "jinx@creatur.local",
+        "displayName": "Джинкс",
+        "bio": "Джинкс — это Джинкс.",
+        "avatarFileId": "/assets/figma/jinx-avatar.png",
+        "coverUrl": "/assets/figma/jinx-project.png",
+        "specialty": "3D художник",
+        "contact": "",
+        "location": "Zaun",
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2021-02-21T00:00:00.000Z",
+        "updatedAt": "2026-09-08T16:33:27.983Z"
+      },
+      {
+        "id": "figma-mel",
+        "email": "mel@creatur.local",
+        "displayName": "Mel Medarda",
+        "bio": "Raised in Noxus, shaped by Piltover, tainted with magic. Many question my motives, but their whispers do not define me",
+        "avatarFileId": "/assets/figma/mel-avatar.png",
+        "coverUrl": "/assets/figma/mel-project.png",
+        "specialty": "Художник иллюстратор",
+        "contact": "",
+        "location": "Piltover",
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2024-02-09T00:00:00.000Z",
+        "updatedAt": "2026-09-08T16:33:27.718Z"
+      },
+      {
+        "id": "figma-viktor",
+        "email": "viktor@creatur.local",
+        "displayName": "Виктор Хекстекович",
+        "bio": "Знание — это парадокс. Чем больше человек понимает, тем больше он осознаёт необъятность своего невежества",
+        "avatarFileId": "/assets/figma/viktor-avatar.png",
+        "coverUrl": "/assets/figma/viktor-project-1.png",
+        "specialty": "3D-креатор, программист, ИИ-креатор",
+        "contact": "t.me/ViktorHEX52321",
+        "location": "Piltover",
+        "role": "USER",
+        "emailVerifiedAt": null,
+        "createdAt": "2020-03-11T00:00:00.000Z",
+        "updatedAt": "2026-09-08T16:33:27.419Z"
+      }
+    ],
+    "categories": [
+      {
+        "id": "cmrsxlll40000gm1kq4oinzuq",
+        "slug": "ai",
+        "name": "ИИ-креаторы",
+        "group": "SECTION",
+        "isActive": true,
+        "sortOrder": 10
+      },
+      {
+        "id": "cmrsxllla0001gm1kmz13n3hg",
+        "slug": "3d",
+        "name": "3D-креаторы",
+        "group": "SECTION",
+        "isActive": true,
+        "sortOrder": 20
+      },
+      {
+        "id": "cmrsxlllc0002gm1kdvio4oiv",
+        "slug": "design",
+        "name": "Дизайнеры",
+        "group": "SECTION",
+        "isActive": true,
+        "sortOrder": 30
+      },
+      {
+        "id": "cmrsxllle0003gm1kq7gskmes",
+        "slug": "code",
+        "name": "Программисты",
+        "group": "SECTION",
+        "isActive": true,
+        "sortOrder": 40
+      },
+      {
+        "id": "cmrsxlllg0004gm1ktervnykt",
+        "slug": "blender",
+        "name": "Blender",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 10
+      },
+      {
+        "id": "cmrsxlllh0005gm1kyy2yk3rt",
+        "slug": "procreate",
+        "name": "ProCreate",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 20
+      },
+      {
+        "id": "cmrsxllli0006gm1kv353m1uo",
+        "slug": "unreal",
+        "name": "Unreal Engine",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 30
+      },
+      {
+        "id": "cmrsxlllj0007gm1ktt1tmgl1",
+        "slug": "unity",
+        "name": "Unity",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 40
+      },
+      {
+        "id": "cmrsxllll0008gm1kenataft7",
+        "slug": "photoshop",
+        "name": "Photoshop",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 50
+      },
+      {
+        "id": "cmrsxlllm0009gm1kx822w6dj",
+        "slug": "figma",
+        "name": "Figma",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 60
+      },
+      {
+        "id": "cmrsxlllo000agm1k9mfe7zvu",
+        "slug": "illustrator",
+        "name": "Illustrator",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 70
+      },
+      {
+        "id": "cmrsxlllq000bgm1k0gel4871",
+        "slug": "after-effects",
+        "name": "After Effects",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 80
+      },
+      {
+        "id": "cmrsxlllr000cgm1k294ooqr9",
+        "slug": "maya",
+        "name": "Maya",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 90
+      },
+      {
+        "id": "cmrsxllls000dgm1k7a04bf11",
+        "slug": "zbrush",
+        "name": "ZBrush",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 100
+      },
+      {
+        "id": "cmrsxlllu000egm1kik3066gx",
+        "slug": "cinema-4d",
+        "name": "Cinema 4D",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 110
+      },
+      {
+        "id": "cmrsxllm1000fgm1kst8vp26g",
+        "slug": "houdini",
+        "name": "Houdini",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 120
+      },
+      {
+        "id": "cmrsxllme000ggm1kp0bb6w6h",
+        "slug": "substance-painter",
+        "name": "Substance Painter",
+        "group": "SOFTWARE",
+        "isActive": true,
+        "sortOrder": 130
+      },
+      {
+        "id": "cmrsxllmg000hgm1kwh3vd7vb",
+        "slug": "3d-models",
+        "name": "3D-модели",
+        "group": "CONTENT",
+        "isActive": true,
+        "sortOrder": 10
+      },
+      {
+        "id": "cmrsxllmi000igm1khdascmou",
+        "slug": "illustration",
+        "name": "Иллюстрации",
+        "group": "CONTENT",
+        "isActive": true,
+        "sortOrder": 20
+      },
+      {
+        "id": "cmrsxllmj000jgm1kp3oa3pgc",
+        "slug": "concept",
+        "name": "Концепт-арт",
+        "group": "CONTENT",
+        "isActive": true,
+        "sortOrder": 30
+      },
+      {
+        "id": "cmrsxllmk000kgm1kwfgbi4dh",
+        "slug": "animation",
+        "name": "Анимация",
+        "group": "CONTENT",
+        "isActive": true,
+        "sortOrder": 40
+      },
+      {
+        "id": "cmrsxllml000lgm1k8ga8qyak",
+        "slug": "character",
+        "name": "Персонажи",
+        "group": "CONTENT",
+        "isActive": true,
+        "sortOrder": 50
+      },
+      {
+        "id": "cmrsxllmn000mgm1k7mkhfx5g",
+        "slug": "environment",
+        "name": "Окружение",
+        "group": "CONTENT",
+        "isActive": true,
+        "sortOrder": 60
+      },
+      {
+        "id": "cmrsxllmo000ngm1kzlusmfvb",
+        "slug": "interface",
+        "name": "Интерфейсы",
+        "group": "CONTENT",
+        "isActive": true,
+        "sortOrder": 70
+      },
+      {
+        "id": "cmrsxllmq000ogm1kzu1071lu",
+        "slug": "prototype",
+        "name": "Код и прототипы",
+        "group": "CONTENT",
+        "isActive": true,
+        "sortOrder": 80
+      },
+      {
+        "id": "cmrsxllms000pgm1kgl2uux86",
+        "slug": "fantasy",
+        "name": "Fantasy",
+        "group": "THEME",
+        "isActive": true,
+        "sortOrder": 10
+      },
+      {
+        "id": "cmrsxllmu000qgm1k6ixtj23l",
+        "slug": "sci-fi",
+        "name": "Sci-fi",
+        "group": "THEME",
+        "isActive": true,
+        "sortOrder": 20
+      },
+      {
+        "id": "cmrsxllmx000rgm1k09qumv0q",
+        "slug": "game",
+        "name": "Game art",
+        "group": "THEME",
+        "isActive": true,
+        "sortOrder": 30
+      },
+      {
+        "id": "cmrsxllmy000sgm1kcc9suh6n",
+        "slug": "cyberpunk",
+        "name": "Cyberpunk",
+        "group": "THEME",
+        "isActive": true,
+        "sortOrder": 40
+      },
+      {
+        "id": "cmrsxlln0000tgm1kxw226b6p",
+        "slug": "hard-surface",
+        "name": "Hard surface",
+        "group": "THEME",
+        "isActive": true,
+        "sortOrder": 50
+      },
+      {
+        "id": "cmrsxlln1000ugm1krw1n6m4h",
+        "slug": "magic",
+        "name": "Magic",
+        "group": "THEME",
+        "isActive": true,
+        "sortOrder": 60
+      },
+      {
+        "id": "cmrsxlln3000vgm1k5nkbjmqu",
+        "slug": "digital-art",
+        "name": "Digital art",
+        "group": "THEME",
+        "isActive": true,
+        "sortOrder": 70
+      },
+      {
+        "id": "cmrsxlln4000wgm1kazcpvto2",
+        "slug": "motion",
+        "name": "Motion",
+        "group": "THEME",
+        "isActive": true,
+        "sortOrder": 80
+      },
+      {
+        "id": "cmrsxlln6000xgm1k3osi2kce",
+        "slug": "gamedev",
+        "name": "GameDev",
+        "group": "THEME",
+        "isActive": true,
+        "sortOrder": 90
+      }
+    ],
+    "projects": [
+      {
+        "id": "ancient-key",
+        "ownerId": "cmrsxln2p0013gm1kee6brkx9",
+        "title": "Ключ древнего механизма",
+        "description": "Пропс для приключенческой игры: потертый металл, декоративные детали и читаемая форма.",
+        "coverFileId": null,
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 145,
+        "viewsCount": 760,
+        "publishedAt": "2026-07-12T15:00:00.000Z",
+        "createdAt": "2026-07-20T07:57:03.148Z",
+        "updatedAt": "2026-07-20T07:57:03.148Z"
+      },
+      {
+        "id": "champion",
+        "ownerId": "cmrsxln2j000ygm1kc2fe8aw7",
+        "title": "Портрет боевого чемпиона",
+        "description": "Крупный эмоциональный портрет героя с напряженным взглядом и кинематографичным светом.",
+        "coverFileId": null,
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 631,
+        "viewsCount": 5200,
+        "publishedAt": "2026-07-12T16:00:00.000Z",
+        "createdAt": "2026-07-20T07:57:03.151Z",
+        "updatedAt": "2026-07-20T07:57:03.151Z"
+      },
+      {
+        "id": "cmrsfbxez000214dpq9sq3iqj",
+        "ownerId": "cmrsfbxd8000014dpa8dx2sds",
+        "title": "Codex upload smoke test",
+        "description": "Temporary project created by Codex to verify auth, file upload, and submit flow.",
+        "coverFileId": null,
+        "status": "PENDING",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": null,
+        "createdAt": "2026-07-19T23:25:36.875Z",
+        "updatedAt": "2026-07-19T23:25:37.024Z"
+      },
+      {
+        "id": "cmrsfl8yo00026pd0omjf6ybm",
+        "ownerId": "cmrsfl8xz00006pd0unwmhlo8",
+        "title": "Codex moderation reject test",
+        "description": "Temporary project created to verify admin reject flow.",
+        "coverFileId": null,
+        "status": "REJECTED",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": null,
+        "createdAt": "2026-07-19T23:32:51.744Z",
+        "updatedAt": "2026-07-19T23:32:52.262Z"
+      },
+      {
+        "id": "cmrsfyye6000213420xukyoo9",
+        "ownerId": "cmrsfyyd5000013420nqu6m68",
+        "title": "Codex my projects smoke test",
+        "description": "Temporary project for checking /api/projects/me.",
+        "coverFileId": null,
+        "status": "PENDING",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": null,
+        "createdAt": "2026-07-19T23:43:31.230Z",
+        "updatedAt": "2026-07-19T23:43:31.249Z"
+      },
+      {
+        "id": "cmrt0cvll0002kes4j2p32sux",
+        "ownerId": "cmrt0cvkl0000kes4jlmtwyzs",
+        "title": "Codex private preview smoke",
+        "description": "Temporary project for checking private detail and preview access.",
+        "coverFileId": null,
+        "status": "PENDING",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": null,
+        "createdAt": "2026-07-20T09:14:13.113Z",
+        "updatedAt": "2026-07-20T09:14:13.168Z"
+      },
+      {
+        "id": "cmrt0dl4r0007kes4cvcucvh8",
+        "ownerId": "cmrt0dl4g0005kes4w1t0igk3",
+        "title": "Codex image preview smoke",
+        "description": "Temporary project for checking image preview.",
+        "coverFileId": null,
+        "status": "PENDING",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": null,
+        "createdAt": "2026-07-20T09:14:46.203Z",
+        "updatedAt": "2026-07-20T09:14:46.236Z"
+      },
+      {
+        "id": "cmrt0myh20002g7iwribrdlh4",
+        "ownerId": "cmrt0myg90000g7iwfnhk9jmf",
+        "title": "Codex image preview ok",
+        "description": "Temporary project for checking image preview after extension detection.",
+        "coverFileId": "cmrt0myi90004g7iwssqpqv0d",
+        "status": "PENDING",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": null,
+        "createdAt": "2026-07-20T09:22:03.398Z",
+        "updatedAt": "2026-07-20T09:22:03.447Z"
+      },
+      {
+        "id": "cmrt1c6ko0002x1sywf33a6ps",
+        "ownerId": "cmrt1c6k00000x1sy5rrr0qg2",
+        "title": "GLB smoke 1784540499776",
+        "description": "Temporary project for protected GLB preview smoke test.",
+        "coverFileId": null,
+        "status": "PENDING",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": null,
+        "createdAt": "2026-07-20T09:41:40.296Z",
+        "updatedAt": "2026-07-20T09:41:40.326Z"
+      },
+      {
+        "id": "figma-jayce-project",
+        "ownerId": "figma-jayce",
+        "title": "Концепт перчаток «Атлас» для специалистов горного дела",
+        "description": "Перчатки «Атлас» станут настоящим прорывом в профессии шахтеров. Люди будут меньше уставать, но их работоспособность и эффективность достигнет пика!",
+        "coverFileId": "figma-jayce-project-0",
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": "2026-09-08T12:00:00.000Z",
+        "createdAt": "2026-09-08T16:33:28.244Z",
+        "updatedAt": "2026-09-08T16:33:28.244Z"
+      },
+      {
+        "id": "figma-jinx-project",
+        "ownerId": "figma-jinx",
+        "title": "Иллюстрация к синематику Arcane",
+        "description": "gEt jInxEd",
+        "coverFileId": "figma-jinx-project-0",
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": "2026-09-08T12:00:00.000Z",
+        "createdAt": "2026-09-08T16:33:27.985Z",
+        "updatedAt": "2026-09-08T16:33:27.985Z"
+      },
+      {
+        "id": "figma-mel-project",
+        "ownerId": "figma-mel",
+        "title": "Арт иллюстрация для игры Лига Легенд",
+        "description": "Raised in Noxus",
+        "coverFileId": "figma-mel-project-0",
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 0,
+        "publishedAt": "2026-09-08T12:00:00.000Z",
+        "createdAt": "2026-09-08T16:33:27.721Z",
+        "updatedAt": "2026-09-08T16:33:27.721Z"
+      },
+      {
+        "id": "figma-viktor-project",
+        "ownerId": "figma-viktor",
+        "title": "Проект хекстекового ядра с использованием природной магии рун",
+        "description": "Хекстековое ядро способно изменить мир к лучшему. Оно стабильно и поможет нуждающимся",
+        "coverFileId": "figma-viktor-project-0",
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 0,
+        "viewsCount": 2,
+        "publishedAt": "2026-09-08T12:00:00.000Z",
+        "createdAt": "2026-09-08T16:33:27.424Z",
+        "updatedAt": "2026-09-08T16:54:31.651Z"
+      },
+      {
+        "id": "fire-ritual",
+        "ownerId": "cmrsxln2n0010gm1k5efqdtqp",
+        "title": "Арт магического ритуала",
+        "description": "Иллюстрация с контрастом холодного пространства и теплого магического света.",
+        "coverFileId": null,
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 421,
+        "viewsCount": 3900,
+        "publishedAt": "2026-07-12T12:00:00.000Z",
+        "createdAt": "2026-07-20T07:57:03.138Z",
+        "updatedAt": "2026-07-20T07:57:03.138Z"
+      },
+      {
+        "id": "iron-gloves",
+        "ownerId": "cmrsxln2m000zgm1khrcnq9ul",
+        "title": "Концепт перчаток для силы",
+        "description": "Детализированный hard-surface объект с акцентом на металл, соединения и выразительный силуэт.",
+        "coverFileId": null,
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 268,
+        "viewsCount": 1700,
+        "publishedAt": "2026-07-12T11:00:00.000Z",
+        "createdAt": "2026-07-20T07:57:03.135Z",
+        "updatedAt": "2026-07-20T07:57:03.135Z"
+      },
+      {
+        "id": "night-drone",
+        "ownerId": "cmrsxln2o0011gm1kl1y82bwg",
+        "title": "Рычащий дрон разведчик",
+        "description": "Игровой объект с агрессивной пластикой, темным корпусом и световыми акцентами.",
+        "coverFileId": null,
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 197,
+        "viewsCount": 980,
+        "publishedAt": "2026-07-12T13:00:00.000Z",
+        "createdAt": "2026-07-20T07:57:03.142Z",
+        "updatedAt": "2026-07-20T07:57:03.142Z"
+      },
+      {
+        "id": "portal-cube",
+        "ownerId": "cmrsxln2j000ygm1kc2fe8aw7",
+        "title": "Проект мистического куба",
+        "description": "Серия кадров для портального артефакта: свет, напряжение формы и ощущение большой игровой сцены.",
+        "coverFileId": null,
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 384,
+        "viewsCount": 2100,
+        "publishedAt": "2026-07-12T10:00:00.000Z",
+        "createdAt": "2026-07-20T07:57:03.125Z",
+        "updatedAt": "2026-07-20T07:57:03.125Z"
+      },
+      {
+        "id": "signal-room",
+        "ownerId": "cmrsxln2o0012gm1kv35yb67p",
+        "title": "Сигнальная комната",
+        "description": "Окружение для сюжетной сцены, построенное вокруг света интерфейсов и глубины кадра.",
+        "coverFileId": null,
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 512,
+        "viewsCount": 4400,
+        "publishedAt": "2026-07-12T14:00:00.000Z",
+        "createdAt": "2026-07-20T07:57:03.144Z",
+        "updatedAt": "2026-07-20T07:57:03.144Z"
+      },
+      {
+        "id": "water-orb",
+        "ownerId": "cmrsxln2q0014gm1k7usk7j7b",
+        "title": "Чужой открытый проект",
+        "description": "Экспериментальная работа с прозрачными материалами, свечением и плавным движением.",
+        "coverFileId": null,
+        "status": "PUBLISHED",
+        "moderationNote": null,
+        "likesCount": 229,
+        "viewsCount": 1200,
+        "publishedAt": "2026-07-12T17:00:00.000Z",
+        "createdAt": "2026-07-20T07:57:03.155Z",
+        "updatedAt": "2026-07-20T07:57:03.155Z"
+      }
+    ],
+    "files": [
+      {
+        "id": "ancient-key-cover",
+        "projectId": "ancient-key",
+        "uploaderId": "cmrsxln2p0013gm1kee6brkx9",
+        "storageKey": "/assets/extracted/home-before-registration/image-07.png",
+        "originalName": "image-07.png",
+        "mimeType": "image/png",
+        "sizeBytes": "304978",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T07:57:03.150Z"
+      },
+      {
+        "id": "champion-cover",
+        "projectId": "champion",
+        "uploaderId": "cmrsxln2j000ygm1kc2fe8aw7",
+        "storageKey": "/assets/extracted/home-before-registration/image-08.png",
+        "originalName": "image-08.png",
+        "mimeType": "image/png",
+        "sizeBytes": "775740",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T07:57:03.153Z"
+      },
+      {
+        "id": "cmrsfbxis000414dppz48loqu",
+        "projectId": "cmrsfbxez000214dpq9sq3iqj",
+        "uploaderId": "cmrsfbxd8000014dpa8dx2sds",
+        "storageKey": "4a0f8137-84fb-4360-baf6-bbe8d821c58d.svg",
+        "originalName": "favicon.svg",
+        "mimeType": "application/octet-stream",
+        "sizeBytes": "4156",
+        "kind": "OTHER",
+        "sortOrder": 0,
+        "createdAt": "2026-07-19T23:25:37.013Z"
+      },
+      {
+        "id": "cmrt0cvmz0004kes4fsojilo3",
+        "projectId": "cmrt0cvll0002kes4j2p32sux",
+        "uploaderId": "cmrt0cvkl0000kes4jlmtwyzs",
+        "storageKey": "46263f5f-0162-4e56-a1dd-a0ea2baa5242.svg",
+        "originalName": "favicon.svg",
+        "mimeType": "application/octet-stream",
+        "sizeBytes": "4156",
+        "kind": "OTHER",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T09:14:13.164Z"
+      },
+      {
+        "id": "cmrt0dl5j0009kes442wgrwjw",
+        "projectId": "cmrt0dl4r0007kes4cvcucvh8",
+        "uploaderId": "cmrt0dl4g0005kes4w1t0igk3",
+        "storageKey": "123ad78a-e33c-449a-b797-a2d8724f03d8.png",
+        "originalName": "image-01.png",
+        "mimeType": "application/octet-stream",
+        "sizeBytes": "473422",
+        "kind": "OTHER",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T09:14:46.232Z"
+      },
+      {
+        "id": "cmrt0myi90004g7iwssqpqv0d",
+        "projectId": "cmrt0myh20002g7iwribrdlh4",
+        "uploaderId": "cmrt0myg90000g7iwfnhk9jmf",
+        "storageKey": "36c4dfe3-e5c7-4a59-b04a-a739eefc9ee3.png",
+        "originalName": "image-01.png",
+        "mimeType": "application/octet-stream",
+        "sizeBytes": "473422",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T09:22:03.441Z"
+      },
+      {
+        "id": "cmrt1c6lb0004x1sysop0iine",
+        "projectId": "cmrt1c6ko0002x1sywf33a6ps",
+        "uploaderId": "cmrt1c6k00000x1sy5rrr0qg2",
+        "storageKey": "1fbce641-1143-44f7-ac9d-3916b683c1a4.glb",
+        "originalName": "smoke.glb",
+        "mimeType": "model/gltf-binary",
+        "sizeBytes": "12",
+        "kind": "MODEL",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T09:41:40.320Z"
+      },
+      {
+        "id": "figma-jayce-project-0",
+        "projectId": "figma-jayce-project",
+        "uploaderId": "figma-jayce",
+        "storageKey": "/assets/figma/jayce-project.png",
+        "originalName": "jayce-project.png",
+        "mimeType": "image/png",
+        "sizeBytes": "2318748",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-09-08T16:33:28.245Z"
+      },
+      {
+        "id": "figma-jinx-project-0",
+        "projectId": "figma-jinx-project",
+        "uploaderId": "figma-jinx",
+        "storageKey": "/assets/figma/jinx-project.png",
+        "originalName": "jinx-project.png",
+        "mimeType": "image/png",
+        "sizeBytes": "669954",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-09-08T16:33:27.987Z"
+      },
+      {
+        "id": "figma-mel-project-0",
+        "projectId": "figma-mel-project",
+        "uploaderId": "figma-mel",
+        "storageKey": "/assets/figma/mel-project.png",
+        "originalName": "mel-project.png",
+        "mimeType": "image/png",
+        "sizeBytes": "1499391",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-09-08T16:33:27.723Z"
+      },
+      {
+        "id": "figma-viktor-project-0",
+        "projectId": "figma-viktor-project",
+        "uploaderId": "figma-viktor",
+        "storageKey": "/assets/figma/viktor-project-1.png",
+        "originalName": "viktor-project-1.png",
+        "mimeType": "image/png",
+        "sizeBytes": "2583104",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-09-08T16:33:27.428Z"
+      },
+      {
+        "id": "figma-viktor-project-1",
+        "projectId": "figma-viktor-project",
+        "uploaderId": "figma-viktor",
+        "storageKey": "/assets/figma/viktor-project-2.png",
+        "originalName": "viktor-project-2.png",
+        "mimeType": "image/png",
+        "sizeBytes": "2117935",
+        "kind": "IMAGE",
+        "sortOrder": 1,
+        "createdAt": "2026-09-08T16:33:27.430Z"
+      },
+      {
+        "id": "figma-viktor-project-2",
+        "projectId": "figma-viktor-project",
+        "uploaderId": "figma-viktor",
+        "storageKey": "/assets/figma/viktor-project-3.png",
+        "originalName": "viktor-project-3.png",
+        "mimeType": "image/png",
+        "sizeBytes": "782053",
+        "kind": "IMAGE",
+        "sortOrder": 2,
+        "createdAt": "2026-09-08T16:33:27.431Z"
+      },
+      {
+        "id": "fire-ritual-cover",
+        "projectId": "fire-ritual",
+        "uploaderId": "cmrsxln2n0010gm1k5efqdtqp",
+        "storageKey": "/assets/extracted/home-before-registration/image-03.png",
+        "originalName": "image-03.png",
+        "mimeType": "image/png",
+        "sizeBytes": "901055",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T07:57:03.140Z"
+      },
+      {
+        "id": "iron-gloves-cover",
+        "projectId": "iron-gloves",
+        "uploaderId": "cmrsxln2m000zgm1khrcnq9ul",
+        "storageKey": "/assets/extracted/home-before-registration/image-02.png",
+        "originalName": "image-02.png",
+        "mimeType": "image/png",
+        "sizeBytes": "951801",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T07:57:03.136Z"
+      },
+      {
+        "id": "night-drone-cover",
+        "projectId": "night-drone",
+        "uploaderId": "cmrsxln2o0011gm1kl1y82bwg",
+        "storageKey": "/assets/extracted/home-before-registration/image-05.png",
+        "originalName": "image-05.png",
+        "mimeType": "image/png",
+        "sizeBytes": "665606",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T07:57:03.143Z"
+      },
+      {
+        "id": "portal-cube-cover",
+        "projectId": "portal-cube",
+        "uploaderId": "cmrsxln2j000ygm1kc2fe8aw7",
+        "storageKey": "/assets/extracted/home-before-registration/image-01.png",
+        "originalName": "image-01.png",
+        "mimeType": "image/png",
+        "sizeBytes": "1037769",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T07:57:03.131Z"
+      },
+      {
+        "id": "signal-room-cover",
+        "projectId": "signal-room",
+        "uploaderId": "cmrsxln2o0012gm1kv35yb67p",
+        "storageKey": "/assets/extracted/home-before-registration/image-06.png",
+        "originalName": "image-06.png",
+        "mimeType": "image/png",
+        "sizeBytes": "1021757",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T07:57:03.146Z"
+      },
+      {
+        "id": "water-orb-cover",
+        "projectId": "water-orb",
+        "uploaderId": "cmrsxln2q0014gm1k7usk7j7b",
+        "storageKey": "/assets/extracted/project-public-foreign/image-01.png",
+        "originalName": "image-01.png",
+        "mimeType": "image/png",
+        "sizeBytes": "1037769",
+        "kind": "IMAGE",
+        "sortOrder": 0,
+        "createdAt": "2026-07-20T07:57:03.156Z"
+      }
+    ],
+    "projectCategories": [
+      {
+        "projectId": "ancient-key",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "ancient-key",
+        "categoryId": "cmrsxlllg0004gm1ktervnykt"
+      },
+      {
+        "projectId": "ancient-key",
+        "categoryId": "cmrsxllmg000hgm1kwh3vd7vb"
+      },
+      {
+        "projectId": "ancient-key",
+        "categoryId": "cmrsxllmj000jgm1kp3oa3pgc"
+      },
+      {
+        "projectId": "ancient-key",
+        "categoryId": "cmrsxllms000pgm1kgl2uux86"
+      },
+      {
+        "projectId": "ancient-key",
+        "categoryId": "cmrsxllmx000rgm1k09qumv0q"
+      },
+      {
+        "projectId": "ancient-key",
+        "categoryId": "cmrsxlln0000tgm1kxw226b6p"
+      },
+      {
+        "projectId": "champion",
+        "categoryId": "cmrsxlllc0002gm1kdvio4oiv"
+      },
+      {
+        "projectId": "champion",
+        "categoryId": "cmrsxlllh0005gm1kyy2yk3rt"
+      },
+      {
+        "projectId": "champion",
+        "categoryId": "cmrsxllmi000igm1khdascmou"
+      },
+      {
+        "projectId": "champion",
+        "categoryId": "cmrsxllmj000jgm1kp3oa3pgc"
+      },
+      {
+        "projectId": "champion",
+        "categoryId": "cmrsxllml000lgm1k8ga8qyak"
+      },
+      {
+        "projectId": "champion",
+        "categoryId": "cmrsxllmx000rgm1k09qumv0q"
+      },
+      {
+        "projectId": "champion",
+        "categoryId": "cmrsxlln3000vgm1k5nkbjmqu"
+      },
+      {
+        "projectId": "cmrsfbxez000214dpq9sq3iqj",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "cmrsfbxez000214dpq9sq3iqj",
+        "categoryId": "cmrsxlllg0004gm1ktervnykt"
+      },
+      {
+        "projectId": "cmrsfbxez000214dpq9sq3iqj",
+        "categoryId": "cmrsxllmx000rgm1k09qumv0q"
+      },
+      {
+        "projectId": "cmrsfl8yo00026pd0omjf6ybm",
+        "categoryId": "cmrsxllmj000jgm1kp3oa3pgc"
+      },
+      {
+        "projectId": "cmrsfl8yo00026pd0omjf6ybm",
+        "categoryId": "cmrsxllmx000rgm1k09qumv0q"
+      },
+      {
+        "projectId": "cmrsfyye6000213420xukyoo9",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "cmrsfyye6000213420xukyoo9",
+        "categoryId": "cmrsxllmj000jgm1kp3oa3pgc"
+      },
+      {
+        "projectId": "cmrt0cvll0002kes4j2p32sux",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "cmrt0cvll0002kes4j2p32sux",
+        "categoryId": "cmrsxllmj000jgm1kp3oa3pgc"
+      },
+      {
+        "projectId": "cmrt0dl4r0007kes4cvcucvh8",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "cmrt0myh20002g7iwribrdlh4",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "cmrt1c6ko0002x1sywf33a6ps",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "figma-jayce-project",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "figma-jayce-project",
+        "categoryId": "cmrsxlllc0002gm1kdvio4oiv"
+      },
+      {
+        "projectId": "figma-jayce-project",
+        "categoryId": "cmrsxllmj000jgm1kp3oa3pgc"
+      },
+      {
+        "projectId": "figma-jinx-project",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "figma-jinx-project",
+        "categoryId": "cmrsxlllc0002gm1kdvio4oiv"
+      },
+      {
+        "projectId": "figma-jinx-project",
+        "categoryId": "cmrsxllmi000igm1khdascmou"
+      },
+      {
+        "projectId": "figma-jinx-project",
+        "categoryId": "cmrsxllmj000jgm1kp3oa3pgc"
+      },
+      {
+        "projectId": "figma-mel-project",
+        "categoryId": "cmrsxlllc0002gm1kdvio4oiv"
+      },
+      {
+        "projectId": "figma-mel-project",
+        "categoryId": "cmrsxlllh0005gm1kyy2yk3rt"
+      },
+      {
+        "projectId": "figma-mel-project",
+        "categoryId": "cmrsxllmi000igm1khdascmou"
+      },
+      {
+        "projectId": "figma-viktor-project",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "figma-viktor-project",
+        "categoryId": "cmrsxlllc0002gm1kdvio4oiv"
+      },
+      {
+        "projectId": "fire-ritual",
+        "categoryId": "cmrsxlllc0002gm1kdvio4oiv"
+      },
+      {
+        "projectId": "fire-ritual",
+        "categoryId": "cmrsxlllh0005gm1kyy2yk3rt"
+      },
+      {
+        "projectId": "fire-ritual",
+        "categoryId": "cmrsxllmi000igm1khdascmou"
+      },
+      {
+        "projectId": "fire-ritual",
+        "categoryId": "cmrsxllml000lgm1k8ga8qyak"
+      },
+      {
+        "projectId": "fire-ritual",
+        "categoryId": "cmrsxllms000pgm1kgl2uux86"
+      },
+      {
+        "projectId": "fire-ritual",
+        "categoryId": "cmrsxllmx000rgm1k09qumv0q"
+      },
+      {
+        "projectId": "fire-ritual",
+        "categoryId": "cmrsxlln1000ugm1krw1n6m4h"
+      },
+      {
+        "projectId": "fire-ritual",
+        "categoryId": "cmrsxlln3000vgm1k5nkbjmqu"
+      },
+      {
+        "projectId": "iron-gloves",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "iron-gloves",
+        "categoryId": "cmrsxlllc0002gm1kdvio4oiv"
+      },
+      {
+        "projectId": "iron-gloves",
+        "categoryId": "cmrsxllli0006gm1kv353m1uo"
+      },
+      {
+        "projectId": "iron-gloves",
+        "categoryId": "cmrsxllmg000hgm1kwh3vd7vb"
+      },
+      {
+        "projectId": "iron-gloves",
+        "categoryId": "cmrsxllmj000jgm1kp3oa3pgc"
+      },
+      {
+        "projectId": "iron-gloves",
+        "categoryId": "cmrsxllmx000rgm1k09qumv0q"
+      },
+      {
+        "projectId": "iron-gloves",
+        "categoryId": "cmrsxlln0000tgm1kxw226b6p"
+      },
+      {
+        "projectId": "night-drone",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "night-drone",
+        "categoryId": "cmrsxllle0003gm1kq7gskmes"
+      },
+      {
+        "projectId": "night-drone",
+        "categoryId": "cmrsxlllj0007gm1ktt1tmgl1"
+      },
+      {
+        "projectId": "night-drone",
+        "categoryId": "cmrsxllmg000hgm1kwh3vd7vb"
+      },
+      {
+        "projectId": "night-drone",
+        "categoryId": "cmrsxllmu000qgm1k6ixtj23l"
+      },
+      {
+        "projectId": "night-drone",
+        "categoryId": "cmrsxlln0000tgm1kxw226b6p"
+      },
+      {
+        "projectId": "night-drone",
+        "categoryId": "cmrsxlln6000xgm1k3osi2kce"
+      },
+      {
+        "projectId": "portal-cube",
+        "categoryId": "cmrsxlll40000gm1kq4oinzuq"
+      },
+      {
+        "projectId": "portal-cube",
+        "categoryId": "cmrsxllla0001gm1kmz13n3hg"
+      },
+      {
+        "projectId": "portal-cube",
+        "categoryId": "cmrsxlllg0004gm1ktervnykt"
+      },
+      {
+        "projectId": "portal-cube",
+        "categoryId": "cmrsxllmg000hgm1kwh3vd7vb"
+      },
+      {
+        "projectId": "portal-cube",
+        "categoryId": "cmrsxllmu000qgm1k6ixtj23l"
+      },
+      {
+        "projectId": "portal-cube",
+        "categoryId": "cmrsxllmx000rgm1k09qumv0q"
+      },
+      {
+        "projectId": "portal-cube",
+        "categoryId": "cmrsxlln1000ugm1krw1n6m4h"
+      },
+      {
+        "projectId": "signal-room",
+        "categoryId": "cmrsxlll40000gm1kq4oinzuq"
+      },
+      {
+        "projectId": "signal-room",
+        "categoryId": "cmrsxlllc0002gm1kdvio4oiv"
+      },
+      {
+        "projectId": "signal-room",
+        "categoryId": "cmrsxllmn000mgm1k7mkhfx5g"
+      },
+      {
+        "projectId": "signal-room",
+        "categoryId": "cmrsxllmo000ngm1kzlusmfvb"
+      },
+      {
+        "projectId": "signal-room",
+        "categoryId": "cmrsxllmu000qgm1k6ixtj23l"
+      },
+      {
+        "projectId": "signal-room",
+        "categoryId": "cmrsxlln3000vgm1k5nkbjmqu"
+      },
+      {
+        "projectId": "water-orb",
+        "categoryId": "cmrsxlll40000gm1kq4oinzuq"
+      },
+      {
+        "projectId": "water-orb",
+        "categoryId": "cmrsxlllc0002gm1kdvio4oiv"
+      },
+      {
+        "projectId": "water-orb",
+        "categoryId": "cmrsxllmu000qgm1k6ixtj23l"
+      },
+      {
+        "projectId": "water-orb",
+        "categoryId": "cmrsxlln3000vgm1k5nkbjmqu"
+      },
+      {
+        "projectId": "water-orb",
+        "categoryId": "cmrsxlln4000wgm1kazcpvto2"
+      }
+    ],
+    "likes": [],
+    "follows": [],
+    "bookmarks": [],
+    "comments": [],
+    "views": []
+  },
+  "manifest": [
+    {
+      "fileId": "ancient-key-cover",
+      "sha256": "c45d60628621b26bf706c9d7580e8ae2739404d1f1779bbfe8d55923ca0c82d1",
+      "sizeBytes": 304978
+    },
+    {
+      "fileId": "champion-cover",
+      "sha256": "3e1b05c0304b8bd6a32e7c15b1f43987e4f356d1e3c0b65f542b36a14831770b",
+      "sizeBytes": 775740
+    },
+    {
+      "fileId": "cmrsfbxis000414dppz48loqu",
+      "sha256": "fcceb1f6cb0c3251f29bd1cbde8779e5ac5fd9136cb3acc7003e2f70a2017295",
+      "sizeBytes": 4156
+    },
+    {
+      "fileId": "cmrt0cvmz0004kes4fsojilo3",
+      "sha256": "fcceb1f6cb0c3251f29bd1cbde8779e5ac5fd9136cb3acc7003e2f70a2017295",
+      "sizeBytes": 4156
+    },
+    {
+      "fileId": "cmrt0dl5j0009kes442wgrwjw",
+      "sha256": "9077eccc5b150fd418e306b98e1168d8bfc664383f1d91e003f0a5f70c4780ce",
+      "sizeBytes": 473422
+    },
+    {
+      "fileId": "cmrt0myi90004g7iwssqpqv0d",
+      "sha256": "9077eccc5b150fd418e306b98e1168d8bfc664383f1d91e003f0a5f70c4780ce",
+      "sizeBytes": 473422
+    },
+    {
+      "fileId": "cmrt1c6lb0004x1sysop0iine",
+      "sha256": "54267b825b3110a5cdaba82e19d4a7a89a2fa1fc73f37efa0b56e496120e22f6",
+      "sizeBytes": 12
+    },
+    {
+      "fileId": "figma-jayce-project-0",
+      "sha256": "7e32fc2777871dd3f2794a01d396d5c43118cc9f45fd0aa01ba320e40457671d",
+      "sizeBytes": 2318748
+    },
+    {
+      "fileId": "figma-jinx-project-0",
+      "sha256": "b99aa43fb032bf0d45826efb490cb4a65ede61e5dd0c4baaece2f630e624879e",
+      "sizeBytes": 669954
+    },
+    {
+      "fileId": "figma-mel-project-0",
+      "sha256": "b451cabb083e0405eb09307461b4c8d45ca340d9fa20f4f1f9e737676d063813",
+      "sizeBytes": 1499391
+    },
+    {
+      "fileId": "figma-viktor-project-0",
+      "sha256": "eb9a253c90dfd0873d136ee3e25c7746a65dee2f942c5989b27aaf178c8e9c82",
+      "sizeBytes": 2583104
+    },
+    {
+      "fileId": "figma-viktor-project-1",
+      "sha256": "f3d8aba105625b7c7c6f6938c53abcc66ecb703c4784efb50bc4afd2f6ba1bc6",
+      "sizeBytes": 2117935
+    },
+    {
+      "fileId": "figma-viktor-project-2",
+      "sha256": "d3ee4bd8b4f832ff83d94ddb54c5d992bda797dcdcb79cc95b05aef27091d5e7",
+      "sizeBytes": 782053
+    },
+    {
+      "fileId": "fire-ritual-cover",
+      "sha256": "0aaf39a3092b0948a2fe5b15e833b1de6fb590041252ec2c5c743b6212b00b0c",
+      "sizeBytes": 901055
+    },
+    {
+      "fileId": "iron-gloves-cover",
+      "sha256": "671d1388bd0dd4d994323747c6bb143fc5f24f8daa6be5e5d5eb5b4028900d6d",
+      "sizeBytes": 951801
+    },
+    {
+      "fileId": "night-drone-cover",
+      "sha256": "4a3b957091dce2d148d9d599bcb1acadc955e3ddfc2a8fb6e73acb2e29d7e4e5",
+      "sizeBytes": 665606
+    },
+    {
+      "fileId": "portal-cube-cover",
+      "sha256": "6bf00c2df53b00ce93d83cfedc217bd862745e65d087bb0ae84c86b2234baa98",
+      "sizeBytes": 1037769
+    },
+    {
+      "fileId": "signal-room-cover",
+      "sha256": "4b9ab2e674c53dc7cc4f0980243584cdf90734dfdbcd5060292e3d0dc29aee42",
+      "sizeBytes": 1021757
+    },
+    {
+      "fileId": "water-orb-cover",
+      "sha256": "6bf00c2df53b00ce93d83cfedc217bd862745e65d087bb0ae84c86b2234baa98",
+      "sizeBytes": 1037769
+    }
+  ]
+}

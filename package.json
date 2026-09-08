@@ -1,0 +1,14 @@
+{
+  "name": "creatur-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ready-to-run academic demo with PostgreSQL and optional SQLite",
+  "engines": { "node": ">=22.14.0" },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "setup:sqlite": "node scripts/setup.mjs --sqlite",
+    "start": "node scripts/start.mjs",
+    "test": "npm --prefix backend test",
+    "test:transfer": "node scripts/verify-transfer.mjs"
+  }
+}
