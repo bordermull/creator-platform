@@ -16,10 +16,12 @@ const contentTypes = {
 
 const server = http.createServer((request, response) => {
   const url = new URL(request.url, `http://${host}:${port}`);
-  const pathname = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
+  let pathname;
+  try { pathname = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname); }
+  catch { response.writeHead(400); response.end("Bad request"); return; }
   const filePath = path.normalize(path.join(root, pathname));
 
-  if (!filePath.startsWith(root)) {
+  if (!filePath.startsWith(`${root}${path.sep}`)) {
     response.writeHead(403);
     response.end("Forbidden");
     return;

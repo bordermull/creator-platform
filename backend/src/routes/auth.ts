@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import type { User } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
 import { config } from "../config.js";
@@ -24,16 +25,15 @@ authRouter.post("/register", async (request, response, next) => {
   try {
     const input = registerSchema.parse(request.body);
     const passwordHash = await hashPassword(input.password);
-    const usersCount = await prisma.user.count();
 
-    // For the MVP we create the first registered account as ADMIN. That gives
-    // a fresh local database an admin without requiring a separate setup script.
+    // Администратор создаётся seed-скриптом. Открытая регистрация всегда
+    // создаёт USER, в том числе при одновременных запросах к пустой базе.
     const user = await prisma.user.create({
       data: {
         email: input.email.toLowerCase(),
         passwordHash,
         displayName: input.displayName,
-        role: usersCount === 0 ? "ADMIN" : "USER"
+        role: "USER"
       }
     });
 
@@ -122,16 +122,18 @@ authRouter.post("/password-reset/confirm", async (request, response, next) => {
       return;
     }
 
-    await prisma.$transaction([
-      prisma.user.update({
+    const changed = await prisma.$transaction(async (tx) => {
+      // Условное обновление одновременно проверяет и расходует токен.
+      // Два параллельных запроса не должны оба изменить пароль одной ссылкой.
+      const consumed = await tx.passwordResetToken.updateMany({ where: { id: resetToken.id, usedAt: null, expiresAt: { gt: new Date() } }, data: { usedAt: new Date() } });
+      if (!consumed.count) return false;
+      await tx.user.update({
         where: { id: resetToken.userId },
         data: { passwordHash: await hashPassword(input.password) }
-      }),
-      prisma.passwordResetToken.update({
-        where: { id: resetToken.id },
-        data: { usedAt: new Date() }
-      })
-    ]);
+      });
+      return true;
+    });
+    if (!changed) { response.status(400).json({ error: "Invalid reset token" }); return; }
 
     response.status(204).end();
   } catch (error) {
@@ -139,7 +141,7 @@ authRouter.post("/password-reset/confirm", async (request, response, next) => {
   }
 });
 
-function publicUser(user: { id: string; email: string; displayName: string; bio: string | null; avatarFileId: string | null; role: string }) {
+function publicUser(user: User) {
   // Never return passwordHash or reset-token data through auth responses.
   return {
     id: user.id,
@@ -147,6 +149,11 @@ function publicUser(user: { id: string; email: string; displayName: string; bio:
     displayName: user.displayName,
     bio: user.bio,
     avatarFileId: user.avatarFileId,
+    coverUrl: user.coverUrl,
+    specialty: user.specialty,
+    contact: user.contact,
+    location: user.location,
+    createdAt: user.createdAt,
     role: user.role
   };
 }

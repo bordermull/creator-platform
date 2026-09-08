@@ -12,6 +12,60 @@
   --max: 1868px;
 }
 
+/* Дополнительные экраны повторяют композицию макета Figma: широкая обложка,
+   тёмная боковая колонка и карточки справа. Размеры адаптируются к экрану;
+   фиксированные координаты 1920px из макета не переносятся в браузер. */
+.feature-screen { min-height: 70vh; padding: 42px 4vw; }
+.feature-screen.creator-page { padding: 0; }
+.creator-cover { height: clamp(160px, 16vw, 300px); background: #262626; overflow: hidden; }
+.creator-cover img { width: 100%; height: 100%; object-fit: cover; }
+.creator-layout { display: grid; grid-template-columns: minmax(260px, 25%) minmax(0, 1fr); min-height: 620px; }
+.creator-sidebar { padding: 24px 30px 48px; position: relative; background: #101010; }
+.creator-avatar { width: 148px; height: 148px; margin-top: -100px; object-fit: cover; border: 10px solid #101010; border-radius: 20px; }
+.creator-edit { float: right; color: var(--accent); }
+.creator-sidebar h1 { font-size: clamp(24px, 2vw, 35px); overflow-wrap: anywhere; margin: 16px 0; }
+.creator-followers { color: var(--muted); }
+.creator-details { margin: 28px 0; }
+.creator-details p { background: #262626; border-radius: 16px; padding: 8px 12px; overflow-wrap: anywhere; }
+.creator-bio { background: #262626; padding: 20px; border-radius: 15px; color: #bbb; white-space: pre-wrap; overflow-wrap: anywhere; }
+.creator-sidebar dl div { display: flex; justify-content: space-between; gap: 12px; margin: 18px 0; }
+.creator-sidebar dd { margin: 0; }
+.creator-content { padding: 28px; min-width: 0; }
+.creator-content .cards-grid { grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr)); }
+.creator-project { min-width: 0; }
+.creator-project .project-card { display: block; }
+.project-card .card-content h3 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.creator-details img { width: 20px; height: 20px; vertical-align: middle; margin-right: 10px; }
+.creator-project > button, .creator-project > a.ghost-button { margin-top: 12px; }
+.profile-editor { display: grid; gap: 20px; max-width: 760px; }
+.profile-editor label, .project-comments label { display: grid; gap: 8px; color: #ccc; }
+.profile-editor input, .profile-editor textarea, .project-comments textarea { background: #262626; color: white; border: 1px solid #666; border-radius: 12px; padding: 12px; width: 100%; font: inherit; }
+.profile-editor textarea, .project-comments textarea { min-height: 110px; resize: vertical; }
+.profile-editor input:focus, .profile-editor textarea:focus { outline: 2px solid var(--accent); }
+.following-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 20px; max-width: 1600px; margin: auto; }
+.following-card { background: #262626; border: 1px solid white; border-radius: 20px; padding: 15px; }
+.following-card img { float: left; width: 76px; height: 76px; object-fit: cover; border: 1px solid white; border-radius: 12px; margin-right: 16px; }
+.following-card h2 { font-size: 20px; margin: 0; overflow-wrap: anywhere; }
+.following-card p { font-size: 13px; color: #aaa; }
+.following-card button { clear: both; margin-top: 10px; }
+.primary-button.is-following { background: white; color: var(--accent); }
+.saved-title { text-align: center; font-size: clamp(28px, 4vw, 54px); margin: 20px 0 54px; }
+.saved-title span { color: var(--accent); }
+.project-actions { display: grid; gap: 12px; margin-top: 20px; }
+.project-comments { padding: 24px; border: 1px solid var(--line); border-radius: 20px; background: #171717; }
+.project-comments article { border-bottom: 1px solid var(--line); padding: 16px 0; }
+.project-comments article p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.project-comments article a { color: var(--accent); }
+.project-comments form { display: grid; gap: 12px; margin-top: 20px; }
+.reset-form { max-width: 540px; margin: 40px auto; }
+[data-feature-error] { color: #ffad89; }
+.footer nav span { display: block; margin-bottom: 14px; }
+@media (max-width: 760px) {
+  .creator-layout { grid-template-columns: 1fr; }
+  .creator-sidebar { padding: 20px; }
+  .creator-content { padding: 20px; }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1499,6 +1553,8 @@ input[type="checkbox"] {
   font-size: 28px;
   line-height: 1.05;
 }
+.project-sidebar > .mini-avatar { width: 108px; height: 108px; border: 2px solid white; border-radius: 20px; }
+.project-title { font-size: 22px; overflow-wrap: anywhere; }
 
 .like-button {
   width: 100%;

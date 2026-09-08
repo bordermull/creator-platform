@@ -4,3 +4,5 @@ dist/
 uploads/
 *.db
 *.log
+.local-mail/
+*.dump

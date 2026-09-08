@@ -131,117 +131,21 @@ function normalizeFilterStateForGroups(filters = state.filters) {
   }));
 }
 
-const fallbackProjects = [
-  {
-    id: "portal-cube",
-    title: "Проект мистического куба",
-    author: "Виктор Жестянщиков",
-    avatar: `${assets.authedHome}image-01.png`,
-    image: `${assets.home}image-01.png`,
-    category: ["3D", "Blender", "sci-fi"],
-    filters: ["ai", "3D", "Blender", "sci-fi", "3d-models", "game", "magic"],
-    likes: 384,
-    views: "2.1k",
-    description: "Серия кадров для портального артефакта: свет, напряжение формы и ощущение большой игровой сцены."
-  },
-  {
-    id: "iron-gloves",
-    title: "Концепт перчаток для силы",
-    author: "Клара Морт",
-    avatar: `${assets.home}image-04.png`,
-    image: `${assets.home}image-02.png`,
-    category: ["3D", "Unreal", "game"],
-    filters: ["3D", "design", "Unreal", "game", "concept", "3d-models", "hard-surface"],
-    likes: 268,
-    views: "1.7k",
-    description: "Детализированный hard-surface объект с акцентом на металл, соединения и выразительный силуэт."
-  },
-  {
-    id: "fire-ritual",
-    title: "Арт магического ритуала",
-    author: "Артем Нокс",
-    avatar: `${assets.home}image-07.png`,
-    image: `${assets.home}image-03.png`,
-    category: ["digital", "fantasy"],
-    filters: ["design", "ProCreate", "fantasy", "game", "illustration", "digital-art", "magic", "character"],
-    likes: 421,
-    views: "3.9k",
-    description: "Иллюстрация с контрастом холодного пространства и теплого магического света."
-  },
-  {
-    id: "night-drone",
-    title: "Рычащий дрон разведчик",
-    author: "Мария Рэй",
-    avatar: `${assets.home}image-08.png`,
-    image: `${assets.home}image-05.png`,
-    category: ["3D", "Unity", "sci-fi"],
-    filters: ["3D", "code", "Unity", "sci-fi", "3d-models", "hard-surface", "gamedev"],
-    likes: 197,
-    views: "980",
-    description: "Игровой объект с агрессивной пластикой, темным корпусом и световыми акцентами."
-  },
-  {
-    id: "signal-room",
-    title: "Сигнальная комната",
-    author: "Денис Варг",
-    avatar: `${assets.authedHome}image-01.png`,
-    image: `${assets.home}image-06.png`,
-    category: ["digital", "sci-fi"],
-    filters: ["ai", "design", "sci-fi", "environment", "interface", "digital-art"],
-    likes: 512,
-    views: "4.4k",
-    description: "Окружение для сюжетной сцены, построенное вокруг света интерфейсов и глубины кадра."
-  },
-  {
-    id: "ancient-key",
-    title: "Ключ древнего механизма",
-    author: "Лина Соул",
-    avatar: `${assets.home}image-04.png`,
-    image: `${assets.home}image-07.png`,
-    category: ["3D", "Blender", "fantasy"],
-    filters: ["3D", "Blender", "fantasy", "concept", "3d-models", "hard-surface", "game"],
-    likes: 145,
-    views: "760",
-    description: "Пропс для приключенческой игры: потертый металл, декоративные детали и читаемая форма."
-  },
-  {
-    id: "champion",
-    title: "Портрет боевого чемпиона",
-    author: "Виктор Жестянщиков",
-    avatar: `${assets.authedHome}image-01.png`,
-    image: `${assets.home}image-08.png`,
-    category: ["digital", "game"],
-    filters: ["design", "ProCreate", "game", "concept", "illustration", "digital-art", "character"],
-    likes: 631,
-    views: "5.2k",
-    description: "Крупный эмоциональный портрет героя с напряженным взглядом и кинематографичным светом."
-  },
-  {
-    id: "water-orb",
-    title: "Чужой открытый проект",
-    author: "Олег Фрост",
-    avatar: `${assets.projectForeign}image-05.png`,
-    image: `${assets.projectForeign}image-01.png`,
-    category: ["motion", "sci-fi"],
-    filters: ["ai", "design", "sci-fi", "motion", "digital-art"],
-    likes: 229,
-    views: "1.2k",
-    description: "Экспериментальная работа с прозрачными материалами, свечением и плавным движением."
-  }
-];
+// Демонстрационный каталог перенесён в seed PostgreSQL. Здесь нет запасного
+// набора работ, который мог бы скрыть недоступность сервера.
 
-let projects = [...fallbackProjects];
+let projects = [];
 let projectsRequest = null;
 let projectsRequestKey = "";
 let latestProjectsRequestKey = "";
 
 const state = {
-  isAuthed: localStorage.getItem("creatur-auth") === "true",
+  isAuthed: false,
   currentUser: null,
   authMode: "login",
   search: "",
   filters: defaultFilterState(),
-  projectsSource: "fallback"
+  projectsSource: "api"
 };
 
 const app = document.querySelector("#app");
@@ -251,6 +155,9 @@ const authActions = document.querySelector("[data-auth-actions]");
 function route() {
   const hash = window.location.hash.replace("#", "") || "home";
   renderHeader();
+  if (hash === "forgot-password" || hash.startsWith("reset-password/")) { renderPasswordReset(hash); return; }
+  if (hash === "following" || hash === "bookmarks") { renderSavedPage(hash); return; }
+  if (hash.startsWith("profile/")) { renderPersistedProfile(hash.split("/")[1], hash.endsWith("/edit")); return; }
 
   // The frontend is still a hash-based static app. This small router keeps all
   // screens in one HTML file, which is convenient while the backend contract is
@@ -262,7 +169,7 @@ function route() {
   }
 
   if (hash === "profile") {
-    renderProfile();
+    renderPersistedProfile(state.currentUser?.id);
     return;
   }
 
@@ -271,7 +178,7 @@ function route() {
       window.location.hash = "login";
       return;
     }
-    renderAccount(hash === "account/edit");
+    renderPersistedProfile(state.currentUser.id, hash === "account/edit", true);
     return;
   }
 
@@ -334,10 +241,12 @@ function renderHeader() {
     ? `
       <div class="account-menu" data-account-menu>
         <button class="avatar-button" type="button" data-account-toggle aria-expanded="false" aria-label="Открыть меню аккаунта">
-          <img src="${assets.account}image-01.png" alt="" />
+          <img src="${escapeHtml(state.currentUser?.avatarFileId || '/assets/favicon.svg')}" alt="" />
         </button>
         <div class="account-dropdown" data-account-dropdown hidden>
           <a href="#account">Личный кабинет</a>
+          <a href="#following">Подписки</a>
+          <a href="#bookmarks">Закладки</a>
           <a href="#upload">Загрузить проект</a>
           ${adminLink}
           <button type="button" data-logout>Выйти</button>
@@ -366,17 +275,17 @@ function renderHeader() {
 function projectCard(project) {
   // The card renderer consumes the legacy UI shape, not the raw backend DTO.
   // mapApiProject is responsible for making API projects look like old mocks.
-  const tags = project.category.map((tag) => `<span>${tag}</span>`).join("");
+  const tags = project.category.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
   return `
     <a class="project-card" href="#project/${project.id}">
       <div class="project-art">
-        <img src="${project.image}" alt="${project.title}" loading="lazy" />
+        <img src="${escapeHtml(project.image)}" alt="${escapeHtml(project.title)}" loading="lazy" />
       </div>
       <div class="card-body">
         <img class="mini-avatar" src="${project.avatar}" alt="" />
         <div class="card-content">
-          <h3>${project.title}</h3>
-          <p>${project.author}</p>
+          <h3>${escapeHtml(project.title)}</h3>
+          <p>${escapeHtml(project.author)}</p>
           <div class="tag-row">${tags}</div>
           <div class="meta-row">
             <span>${project.likes} лайков</span>
@@ -401,7 +310,7 @@ function formatCompactNumber(value) {
 }
 
 function resolveProjectAssetUrl(url) {
-  if (!url) return `${assets.home}image-01.png`;
+  if (!url) return "/assets/figma/favicon.png";
 
   // Old Figma-exported assets live next to the static frontend, while newly
   // uploaded files are served by the API from /uploads. Keeping this translation
@@ -443,15 +352,15 @@ function mapApiProject(project) {
   // current static UI without rewriting every rendering function at once.
   return {
     id: project.id,
+    authorId: project.author?.id,
     title: project.title,
     author: project.author?.name || "Автор CREATUR",
-    avatar: project.author?.avatar || `${assets.account}image-01.png`,
+    avatar: project.author?.avatar || "/assets/figma/favicon.png",
     image: resolveProjectAssetUrl(project.image),
     category: displayCategories.length ? displayCategories : project.categoryLabels || [],
     categorySlugs: project.categorySlugs || categories.map((category) => category.slug).filter(Boolean),
-    // Local filtering still exists as a fallback when the backend is unavailable.
-    // It needs both slugs and labels because old mock projects mix display names
-    // and filter ids. This is transitional glue, not the final data model.
+    // Клиент дополнительно фильтрует уже полученные карточки для мгновенного
+    // отклика. Slug нужен для параметров API, подпись — для текстового поиска.
     filters: [
       ...(project.categorySlugs || []),
       ...(project.categoryLabels || []),
@@ -722,6 +631,9 @@ async function logout() {
   }
 
   setAuthedUser(null);
+  // Не оставляем в памяти карточки личного кабинета после выхода из аккаунта.
+  projects = [];
+  projectsRequestKey = "";
 }
 
 function activeCategoryParams() {
@@ -777,9 +689,9 @@ async function loadProjectFromApi(id) {
     upsertProject(project);
     return project;
   } catch (error) {
-    // Detail pages keep the old local project data when backend is unavailable.
-    console.warn("Using fallback project detail:", error);
-    return projects.find((project) => project.id === id) || null;
+    // При ошибке не показываем кэш: доступ к неопубликованной работе мог измениться.
+    console.warn("Project detail unavailable:", error);
+    return null;
   }
 }
 
@@ -787,7 +699,8 @@ async function loadProjectsFromApi() {
   const url = buildProjectsUrl();
   const requestKey = url.toString();
 
-  if (state.projectsSource === "api" && projectsRequestKey === requestKey) return projects;
+  // При повторном открытии каталога снова сверяем публикации с сервером.
+  // Объединяем только одновременно выполняющиеся одинаковые запросы.
   if (projectsRequest && projectsRequestKey === requestKey) return projectsRequest;
 
   projectsRequestKey = requestKey;
@@ -815,12 +728,11 @@ async function loadProjectsFromApi() {
       return projects;
     })
     .catch((error) => {
-      // The frontend must remain usable when the backend is not running. During
-      // this transition stage we keep rendering the original mock catalog.
-      console.warn("Using fallback projects:", error);
+      // Ошибка сервера должна быть заметна: демонстрационный массив не заменяет БД.
+      console.warn("Project catalog unavailable:", error);
       if (latestProjectsRequestKey === requestKey) {
-        projects = [...fallbackProjects];
-        state.projectsSource = "fallback";
+        projects = [];
+        state.projectsSource = "error";
       }
       return projects;
     })
@@ -837,6 +749,7 @@ function refreshProjectCards(target) {
   loadProjectsFromApi().then(() => {
     if (!document.body.contains(target)) return;
     renderCards(target, filteredProjects());
+    if (state.projectsSource === "error") target.innerHTML = '<p role="alert">Не удалось подключиться к серверу. Проверьте запуск приложения и обновите страницу.</p>';
   });
 }
 
@@ -849,7 +762,10 @@ function filteredProjects() {
   const q = state.search.trim().toLowerCase();
   const activeFilters = Object.values(state.filters);
   return projects.filter((project) => {
-    const haystack = `${project.title} ${project.author} ${project.category.join(" ")} ${project.filters.join(" ")}`.toLowerCase();
+    // Карточка черновика могла попасть в общий кэш из личного кабинета.
+    // Публичный каталог никогда не должен показывать такие записи даже на миг.
+    if (project.status !== "PUBLISHED") return false;
+    const haystack = `${project.title} ${project.description} ${project.author} ${project.category.join(" ")} ${project.filters.join(" ")}`.toLowerCase();
     const matchesSearch = !q || haystack.includes(q);
     const projectFilters = project.filters.map((item) => item.toLowerCase());
     const matchesFilters = activeFilters.every((group) => {
@@ -873,10 +789,10 @@ function renderFilterControls(target) {
         .map((option) => `<label><input type="checkbox" value="${escapeHtml(option.value)}" /> ${escapeHtml(option.label)}</label>`)
         .join("");
       return `
-        <div class="filter-group" data-filter-group="${group.id}">
-          <p class="filter-title">${escapeHtml(group.title)}</p>
+        <details class="filter-group" data-filter-group="${group.id}" open>
+          <summary class="filter-title">${escapeHtml(group.title)}</summary>
           ${options}
-        </div>
+        </details>
       `;
     })
     .join("");
@@ -988,6 +904,7 @@ function openAuth(mode = "login") {
 
 function updateAuthModal() {
   const isRegister = state.authMode === "register";
+  document.querySelector("[data-register-name]").hidden = !isRegister;
   const title = document.querySelector("[data-auth-title]");
   const subtitle = document.querySelector("[data-auth-subtitle]");
   const submit = document.querySelector("[data-auth-submit]");
@@ -1047,7 +964,7 @@ async function submitAuth(event) {
           body: JSON.stringify({
             email,
             password,
-            displayName: displayNameFromEmail(email)
+            displayName: String(data.get("displayName") || "").trim()
           })
         })
       : await apiJson("/api/auth/login", {
@@ -1060,11 +977,11 @@ async function submitAuth(event) {
     window.location.hash = state.authMode === "register" ? "account" : "home";
     route();
   } catch {
+    submit.disabled = false;
+    updateAuthModal();
     error.textContent = state.authMode === "login"
       ? "Не удалось войти. Проверьте почту и пароль."
       : "Не удалось создать профиль. Возможно, почта уже зарегистрирована.";
-    submit.disabled = false;
-    updateAuthModal();
   }
 }
 
@@ -1624,15 +1541,9 @@ function adminProjectCard(project) {
 function renderProject(id) {
   cloneTemplate("project-template");
   const page = app.querySelector("[data-project-page]");
-  const project = projects.find((item) => item.id === id);
-
-  // Render immediately from current data, then refresh with the dedicated
-  // detail endpoint. This keeps navigation instant while still using backend truth.
-  if (project) {
-    renderProjectContent(page, project);
-  } else {
-    page.innerHTML = `<div class="project-empty"><h1>Загружаем проект</h1><p>Проверяем доступ и получаем данные из backend.</p></div>`;
-  }
+  // Сначала сервер проверяет доступ. Не используем старую карточку для
+  // мгновенного показа: проект мог быть архивирован или сессия завершилась.
+  page.innerHTML = `<div class="project-empty"><h1>Загружаем проект</h1><p>Проверяем доступ и получаем данные из backend.</p></div>`;
 
   loadProjectFromApi(id).then((apiProject) => {
     if (window.location.hash !== `#project/${id}` || !document.body.contains(page)) return;
@@ -1641,6 +1552,7 @@ function renderProject(id) {
       return;
     }
     renderProjectContent(page, apiProject);
+    if (apiProject.status === "PUBLISHED") apiJson(`/api/projects/${encodeURIComponent(id)}/view`, { method: "POST" }).catch(() => {});
   });
 }
 
@@ -1666,9 +1578,9 @@ function renderProjectContent(target, project) {
 
   target.innerHTML = `
     <aside class="project-sidebar">
-      <img class="mini-avatar" src="${project.avatar}" alt="" />
-      <h1>${safeTitle}</h1>
-      <p>${escapeHtml(project.author)}</p>
+      <img class="mini-avatar" src="${escapeHtml(project.avatar)}" alt="" />
+      <h1>${escapeHtml(project.author)}</h1>
+      <h2 class="project-title">${safeTitle}</h2>
       ${project.status && project.status !== "PUBLISHED" ? `<span class="status-pill">${projectStatusLabel(project.status)}</span>` : ""}
       <button class="primary-button like-button" type="button" data-like-button>Нравится: ${project.likes}</button>
       ${editLink}
@@ -1681,6 +1593,7 @@ function renderProjectContent(target, project) {
     </div>
   `;
 
+  wireProjectFeatures(target, project);
   target.querySelector("[data-like-button]").addEventListener("click", async (event) => {
     if (!state.isAuthed) {
       window.location.hash = "login";
@@ -1692,7 +1605,7 @@ function renderProjectContent(target, project) {
     button.textContent = "Ставим лайк...";
 
     try {
-      await apiJson(`/api/projects/${encodeURIComponent(project.id)}/like`, { method: "POST" });
+      await apiJson(`/api/projects/${encodeURIComponent(project.id)}/like`, { method: button.dataset.liked === "true" ? "DELETE" : "POST" });
       const refreshedProject = await loadProjectFromApi(project.id);
       if (refreshedProject && document.body.contains(target)) {
         renderProjectContent(target, refreshedProject);
@@ -1747,7 +1660,7 @@ function projectPreview(file) {
           exposure="0.9"
           crossorigin="use-credentials"
         >
-          <div class="model-viewer-fallback">
+          <div class="model-viewer-fallback" hidden>
             <p>3D-preview не загрузился. Файл сохранён, но браузеру не удалось открыть модель.</p>
           </div>
         </model-viewer>

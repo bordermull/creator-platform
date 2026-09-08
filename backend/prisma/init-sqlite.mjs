@@ -1,8 +1,9 @@
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import "dotenv/config";
 
-const databasePath = path.join(path.dirname(fileURLToPath(import.meta.url)), "dev.db");
+const databasePath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), (process.env.SQLITE_DATABASE_URL || "file:./dev.db").replace(/^file:/, ""));
 const database = new DatabaseSync(databasePath);
 
 // Prisma db push unexpectedly fails on this Windows machine, while Prisma can
@@ -130,5 +131,33 @@ if (!projectColumnNames.has("moderationNote")) {
   database.exec(`ALTER TABLE "Project" ADD COLUMN "moderationNote" TEXT`);
 }
 
+// Быстрый SQLite-запуск сохраняет тот же API, что и PostgreSQL. Добавления
+// выполняются на месте и не стирают существующие локальные проекты.
+const userColumns = new Set(database.prepare('PRAGMA table_info("User")').all().map((column) => column.name));
+for (const column of ["coverUrl", "specialty", "contact", "location"]) {
+  if (!userColumns.has(column)) database.exec(`ALTER TABLE "User" ADD COLUMN "${column}" TEXT`);
+}
+database.exec(`
+CREATE TABLE IF NOT EXISTS "Follow" (
+  "followerId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  "followingId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY ("followerId", "followingId")
+);
+CREATE TABLE IF NOT EXISTS "Bookmark" (
+  "userId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  "projectId" TEXT NOT NULL REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY ("userId", "projectId")
+);
+CREATE TABLE IF NOT EXISTS "Comment" (
+  "id" TEXT PRIMARY KEY NOT NULL,
+  "userId" TEXT NOT NULL REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  "projectId" TEXT NOT NULL REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  "body" TEXT NOT NULL,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "Comment_projectId_createdAt_idx" ON "Comment"("projectId", "createdAt");
+`);
 database.close();
 console.log(`SQLite database ready at ${databasePath}`);

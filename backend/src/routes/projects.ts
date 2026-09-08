@@ -48,8 +48,8 @@ const upload = multer({
 });
 
 const projectMutationSchema = z.object({
-  title: z.string().min(2).max(140),
-  description: z.string().min(1).max(5000),
+  title: z.string().trim().min(2).max(140),
+  description: z.string().trim().min(1).max(5000),
   categoryIds: z.array(z.string()).default([]),
   categorySlugs: z.array(z.string()).default([])
 });
@@ -77,22 +77,17 @@ projectsRouter.get("/", async (request, response, next) => {
         // Public catalog returns only published projects. Drafts and moderation
         // states are reserved for owners and admins.
         status: "PUBLISHED",
-        ...(query.search
-          ? {
-              OR: [
-                { title: { contains: query.search } },
-                { description: { contains: query.search } },
-                { owner: { displayName: { contains: query.search } } }
-              ]
-            }
-          : {}),
         ...categoryFilters
       },
       include: projectInclude,
       orderBy: { publishedAt: "desc" }
     });
 
-    response.json({ projects: projects.map(toProjectDto) });
+    // Для небольшого каталога нормализация в JavaScript даёт одинаковый
+    // регистронезависимый поиск кириллицы в PostgreSQL и SQLite.
+    const search = query.search?.trim().toLocaleLowerCase("ru-RU");
+    const matched = search ? projects.filter((project) => [project.title, project.description, project.owner.displayName].some((value) => value.toLocaleLowerCase("ru-RU").includes(search))) : projects;
+    response.json({ projects: matched.map(toProjectDto) });
   } catch (error) {
     next(error);
   }
@@ -132,7 +127,7 @@ projectsRouter.get("/me", requireAuth, async (request, response, next) => {
       // This route powers the personal account page, so it intentionally returns
       // every project owned by the current user: DRAFT, PENDING, PUBLISHED and
       // REJECTED. The public catalog route above remains PUBLISHED-only.
-      where: { ownerId: user.id },
+      where: { ownerId: user.id, status: { not: "ARCHIVED" } },
       include: projectInclude,
       orderBy: { createdAt: "desc" }
     });
@@ -253,6 +248,9 @@ projectsRouter.get("/:id/files/:fileId/preview", async (request, response, next)
     response.setHeader("Content-Type", contentTypeForPreview(file));
     response.setHeader("Content-Disposition", `inline; filename="${encodeURIComponent(file.originalName)}"`);
     response.setHeader("Cache-Control", "private, no-store");
+    // SVG, открытый отдельной вкладкой, не может исполнять скрипты сайта.
+    response.setHeader("X-Content-Type-Options", "nosniff");
+    response.setHeader("Content-Security-Policy", "sandbox; default-src 'none'; style-src 'unsafe-inline'");
     response.sendFile(filePath);
   } catch (error) {
     next(error);
@@ -280,6 +278,9 @@ projectsRouter.post("/:id/submit", requireAuth, async (request, response, next) 
       return;
     }
 
+    if (!await prisma.projectFile.count({ where: { projectId: existingProject.id } })) {
+      response.status(400).json({ error: "Add at least one project file before submitting" }); return;
+    }
     const project = await prisma.project.update({
       where: { id: request.params.id },
       data: {
@@ -304,6 +305,9 @@ projectsRouter.post("/:id/submit", requireAuth, async (request, response, next) 
 projectsRouter.post("/:id/like", requireAuth, async (request, response, next) => {
   try {
     const user = (request as AuthedRequest).user;
+    if (!await prisma.project.findFirst({ where: { id: request.params.id, status: "PUBLISHED" } })) {
+      response.status(404).json({ error: "Project not found" }); return;
+    }
     await prisma.like.upsert({
       where: { userId_projectId: { userId: user.id, projectId: request.params.id } },
       update: {},
@@ -515,7 +519,7 @@ async function cleanupUploadedFiles(files: Express.Multer.File[]) {
   await Promise.all(files.map((file) => fs.rm(file.path, { force: true })));
 }
 
-const projectInclude = {
+export const projectInclude = {
   owner: {
     select: {
       id: true,
@@ -529,6 +533,7 @@ const projectInclude = {
 } as const;
 
 function canViewProject(project: { ownerId: string; status: string }, sessionUser: SessionUser | null) {
+  if (project.status === "ARCHIVED") return false;
   if (project.status === "PUBLISHED") return true;
   if (!sessionUser) return false;
   return sessionUser.role === "ADMIN" || project.ownerId === sessionUser.id;

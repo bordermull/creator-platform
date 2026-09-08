@@ -7,6 +7,8 @@ import { adminRouter } from "./routes/admin.js";
 import { authRouter } from "./routes/auth.js";
 import { categoriesRouter } from "./routes/categories.js";
 import { projectsRouter } from "./routes/projects.js";
+import { usersRouter } from "./routes/users.js";
+import { socialRouter } from "./routes/social.js";
 
 export const app = express();
 
@@ -23,7 +25,7 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "6mb" }));
 app.use(cookieParser());
 
 app.get("/health", (_request, response) => {
@@ -32,7 +34,8 @@ app.get("/health", (_request, response) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/categories", categoriesRouter);
-app.use("/api/projects", projectsRouter);
+app.use("/api/projects", socialRouter, projectsRouter);
+app.use("/api/users", usersRouter);
 app.use("/api/admin", adminRouter);
 
 // Route handlers pass validation and runtime errors here through next(error).
@@ -43,6 +46,11 @@ app.use((error: unknown, _request: express.Request, response: express.Response, 
     return;
   }
 
+  // Ошибки уникальности/отсутствия записи — ожидаемые ответы интерфейсу,
+  // а не авария сервера (например, повторная регистрация того же email).
+  const code = (error as { code?: string })?.code;
+  if (code === "P2002") { response.status(409).json({ error: "Record already exists" }); return; }
+  if (code === "P2025" || code === "P2003") { response.status(404).json({ error: "Record not found" }); return; }
   console.error(error);
   response.status(500).json({ error: "Internal server error" });
 });

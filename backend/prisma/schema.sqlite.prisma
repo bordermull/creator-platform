@@ -14,6 +14,14 @@ model User {
   displayName         String
   bio                 String?
   avatarFileId        String?
+  coverUrl            String?
+  specialty           String?
+  contact             String?
+  location            String?
+  following           Follow[]             @relation("Follower")
+  followers           Follow[]             @relation("Following")
+  bookmarks           Bookmark[]
+  comments            Comment[]
   role                String               @default("USER")
   emailVerifiedAt     DateTime?
   createdAt           DateTime             @default(now())
@@ -23,6 +31,38 @@ model User {
   likes               Like[]
   views               ProjectView[]
   passwordResetTokens PasswordResetToken[]
+}
+
+
+// Подписки и закладки уникальны по паре участников: повторный клик или
+// повтор запроса не создаёт дубликат. Связи удаляются вместе с владельцем.
+model Follow {
+  followerId String
+  followingId String
+  createdAt DateTime @default(now())
+  follower User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  @@id([followerId, followingId])
+}
+
+model Bookmark {
+  userId String
+  projectId String
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  @@id([userId, projectId])
+}
+
+model Comment {
+  id String @id @default(cuid())
+  userId String
+  projectId String
+  body String
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  @@index([projectId, createdAt])
 }
 
 model PasswordResetToken {
@@ -55,6 +95,8 @@ model Project {
   categories     ProjectCategory[]
   likes          Like[]
   views          ProjectView[]
+  bookmarks      Bookmark[]
+  comments       Comment[]
 
   @@index([ownerId])
   @@index([status, publishedAt])

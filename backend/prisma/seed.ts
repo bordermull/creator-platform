@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/lib/passwords.js";
+import { seedFigma } from "./seed-figma.js";
 
 dotenv.config();
 
@@ -238,12 +239,9 @@ async function main() {
   for (const author of demoAuthors) {
     const user = await prisma.user.upsert({
       where: { email: author.email },
-      update: {
-        displayName: author.displayName,
-        bio: author.bio,
-        avatarFileId: author.avatarFileId,
-        role: author.role
-      },
+      // Повторный запуск не должен отменять изменения профиля или роли,
+      // которые пользователь уже сохранил в своей базе.
+      update: {},
       create: {
         email: author.email,
         passwordHash: passwordHashByEmail.get(author.email) || "",
@@ -264,6 +262,12 @@ async function main() {
   // cover file record so the API DTO can expose the same image paths the static
   // frontend already knows how to render.
   for (const demoProject of demoProjects) {
+    // Seed заполняет пустую БД, но не восстанавливает демонстрационные данные
+    // поверх пользовательских правок. Особенно важно сохранить файлы проекта:
+    // раньше повторный запуск удалял их записи и заменял одной обложкой.
+    const existingProject = await prisma.project.findUnique({ where: { id: demoProject.id } });
+    if (existingProject) continue;
+
     const owner = usersByEmail.get(demoProject.ownerEmail);
 
     if (!owner) {
@@ -327,7 +331,7 @@ async function main() {
   }
 }
 
-main()
+main().then(() => seedFigma(prisma))
   .catch((error) => {
     console.error(error);
     process.exitCode = 1;

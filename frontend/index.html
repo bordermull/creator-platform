@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CREATUR</title>
-    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="./assets/figma/favicon.png" type="image/png" />
     <link rel="stylesheet" href="./styles.css" />
     <!--
       <model-viewer> is a lightweight web component for browser-native GLB/GLTF
@@ -21,10 +21,10 @@
           <img src="./assets/logo.svg" alt="CREATUR" />
         </a>
         <nav class="nav" aria-label="Основная навигация">
-          <a href="#home">ИИ-креаторы</a>
-          <a href="#home">3D-креаторы</a>
-          <a href="#profile">Дизайнеры</a>
-          <a href="#home">Программисты</a>
+          <a href="#home" data-section="ai">ИИ-креаторы</a>
+          <a href="#home" data-section="3d">3D-креаторы</a>
+          <a href="#home" data-section="design">Дизайнеры</a>
+          <a href="#home" data-section="code">Программисты</a>
         </nav>
         <div class="header-actions" data-auth-actions></div>
         <button class="menu-button" type="button" data-menu-button aria-label="Открыть меню">
@@ -41,9 +41,10 @@
           <img src="./assets/logo.svg" alt="CREATUR" />
         </a>
         <nav aria-label="Контакты">
-          <a href="#home">Наши контакты</a>
-          <a href="#home">Telegram</a>
-          <a href="#home">Вконтакте</a>
+          <span>Наши соцсети · демонстрационные контакты</span>
+          <span>Telegram: @creatur_art_lab</span>
+          <span>Pinterest: Creatur Inspiration</span>
+          <span>ВКонтакте: CREATUR — мастерская авторов</span>
         </nav>
         <p>© CREATUR TEAM. Все права защищены.</p>
       </footer>
@@ -101,6 +102,7 @@
           <form class="auth-card" data-auth-form novalidate>
             <h1 id="auth-title" data-auth-title>Вход</h1>
             <p data-auth-subtitle>Нет аккаунта? <button type="button" data-switch-auth="register">Создать профиль</button></p>
+            <div class="field" data-register-name hidden><label for="displayName">Имя автора</label><input id="displayName" name="displayName" minlength="2" maxlength="80" autocomplete="name" /></div>
             <div class="field">
               <label for="email">Адрес электронной почты</label>
               <input id="email" name="email" type="email" autocomplete="email" required />
@@ -110,6 +112,7 @@
               <input id="password" name="password" type="password" autocomplete="current-password" required />
             </div>
             <p class="form-error" data-form-error></p>
+            <a href="#forgot-password" onclick="document.querySelector('[data-modal-backdrop]')?.remove()">Забыли пароль?</a>
             <button class="primary-button full" type="submit" data-auth-submit>Продолжить</button>
           </form>
           <div class="auth-brand">
@@ -308,5 +311,6 @@
     </template>
 
     <script src="./app.js"></script>
+    <script src="./features.js"></script>
   </body>
 </html>
